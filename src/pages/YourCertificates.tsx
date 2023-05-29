@@ -2,20 +2,20 @@ import React, { useState } from "react"
 import { Button, Spinner } from "react-bootstrap"
 import { toast } from "react-toastify";
 import { base64ToUTF8String, formatTime } from "../utils/conversions";
-import { Contract, deleteDoc } from "../utils/registry";
+import { Contract, deleteCert } from "../utils/registry";
 
-export const YourDocuments: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
+export const YourCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
     const [loading, setLoading] = useState(false);
-    const [activeDoc, setActiveDoc] = useState("");
+    const [activeCert, setActiveCert] = useState("");
 
-    const getName = (doc: any) => {
-        let key = base64ToUTF8String(doc["key"])
+    const getName = (cert: any) => {
+        let key = base64ToUTF8String(cert["key"])
         let end = key.length - 14;
         return key.substring(0, end)
     }
 
-    const getDate = (doc: any) => {
-        let key = base64ToUTF8String(doc["key"])
+    const getDate = (cert: any) => {
+        let key = base64ToUTF8String(cert["key"])
         let date = key.slice(-13)
         return formatTime(Number(date))
     }
@@ -25,20 +25,20 @@ export const YourDocuments: React.FC<{ senderAddress: string, contract: Contract
         fetchBalance(senderAddress);
     }
 
-    const deleteDocument = (doc: any) => {
-        let docName = getName(doc)
-        setActiveDoc(docName)
+    const deleteCertificate = (cert: any) => {
+        let certName = getName(cert)
+        setActiveCert(certName)
         setLoading(true);
-        let key = base64ToUTF8String(doc["key"])
-        deleteDoc(senderAddress, key)
+        let key = base64ToUTF8String(cert["key"])
+        deleteCert(senderAddress, key)
             .then(() => {
-                toast.success(`${docName} deleted successfully`);
+                toast.success(`${certName} deleted successfully`);
                 setTimeout(() => {
                     update();
                 }, 3000);
             }).catch(error => {
                 console.log({ error });
-                toast.error(`Failed to delete ${docName}`);
+                toast.error(`Failed to delete ${certName}`);
             }).finally(() => {
                 setLoading(false);
             });;
@@ -46,9 +46,9 @@ export const YourDocuments: React.FC<{ senderAddress: string, contract: Contract
 
     return (
         <div className="my-5">
-            <h5 className="fw-bold">Your Documents</h5>
+            <h5 className="fw-bold">Your Certificates</h5>
             <p>
-                Overview of all documents you have uploaded to the contract.
+                Overview of all certificates you have uploaded to the contract.
             </p>
 
             <div className="bg-gray-900 rounded-sm">
@@ -61,25 +61,25 @@ export const YourDocuments: React.FC<{ senderAddress: string, contract: Contract
                         </tr>
                     </thead>
                     <tbody className="font-mono">
-                        {contract.userDocuments?.map(document => (
-                            <tr key={document["key"]}>
+                        {contract.userCertificates?.map(certificate => (
+                            <tr key={certificate["key"]}>
                                 <td className="border-t border-gray-800 px-4 py-3">
                                     <span className="flex items-center space-x-1">
-                                        {getName(document)}
+                                        {getName(certificate)}
                                     </span>
                                 </td>
                                 <td className="relative w-1/4 border-t border-gray-800">
                                     <span className="absolute inset-0 truncate px-4 py-3">
-                                        {getDate(document)}
+                                        {getDate(certificate)}
                                     </span>
                                 </td>
                                 <td className="relative w-1/4 border-t border-gray-800 px-4 py-3 text-right">
                                     <Button
                                         variant="outline-danger"
-                                        onClick={() => deleteDocument(document)}
+                                        onClick={() => deleteCertificate(certificate)}
                                         className="btn"
                                     >
-                                        {loading ? activeDoc === getName(document) ?
+                                        {loading ? activeCert === getName(certificate) ?
                                             <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" /> : <i className="bi bi-trash"></i>
                                             : <i className="bi bi-trash"></i>
                                         }

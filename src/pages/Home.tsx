@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { Contract, createContract } from "../utils/registry";
 import { truncateAddress } from "../utils/conversions";
 
-export const Home: React.FC<{ senderAddress: string, contract: Contract, fetchBalance: Function }> = ({ senderAddress, contract, fetchBalance }) => {
+export const Home: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
 	const [loading, setLoading] = useState(false);
 
 	const deployContract = async () => {
@@ -14,6 +14,7 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, fetchBa
 			.then(() => {
 				toast.dismiss();
 				toast.success(`Contract created successfully`);
+				getContract();
 				fetchBalance(senderAddress);
 			})
 			.catch((error) => {
@@ -27,25 +28,25 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, fetchBa
 	return (
 		<div>
 			<section id="viewHome" className="my-5">
-				<h1>Document Registry</h1>
-				Welcome to the "Document Registry" DApp. This decentralized app runs on
-				the Algorand Blockchain network and holds a registry of documents in on chain.
+				<h1>Certificate Registry</h1>
+				Welcome to the "Certificate Registry" DApp. This decentralized app runs on
+				the Algorand Blockchain network and holds a registry of certificates in on chain.
 				<ul>
 					<li>
-						The registry keeps the hashes of the documents along with their
+						The registry keeps the hashes of the certificates along with their
 						publish date.
 					</li>
 					<li>
-						<b className="fw-bold">Users</b> can submit new documents
+						<b className="fw-bold">Users</b> can submit new certificates
 						to be stored on the blockchain.
 					</li>
 					<li>
 						<b className="fw-bold">Users</b> can verify the existence of certain
-						document in the registry.
+						certificate in the registry.
 					</li>
 					<li>
 						Contract <b className="fw-bold">address</b> (on Algo testnet):{" "}
-						<a href={`https://testnet.algoexplorer.io/address/${contract.appId}`} id="contractLink" target="_blank" rel="noreferrer">
+						<a href={`https://goalseeker.purestake.io/algorand/testnet/application/${contract.appId}`} id="contractLink" target="_blank" rel="noreferrer">
 							{" "}
 							{truncateAddress(contract.appAddress)}
 						</a>
@@ -54,7 +55,7 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, fetchBa
 						Number of <b className="fw-bold">Documents</b> in registry:{" "}
 						<b className="fw-bold">
 							<a id="docsInRegistry" href="#docsInRegistry">
-								{contract.totalDocument}
+								{contract.totalCertificate}
 							</a>
 						</b>{" "}
 						Documents

@@ -15,7 +15,7 @@ import { Home } from "./pages/Home"
 import { Footer } from "./components/Footer"
 import { Submit } from "./pages/Submit"
 import { Verify } from "./pages/Verify"
-import { YourDocuments } from "./pages/YourDocuments"
+import { YourCertificates } from "./pages/YourCertificates"
 import { Contract, getContractData } from "./utils/registry";
 import { contractTemplate } from "./utils/constants"
 import Loader from "./components/Loader"
@@ -99,12 +99,11 @@ function App() {
 							</Nav.Item>
 						</Nav>
 						<Routes>
-							<Route element={<Home senderAddress={address} contract={contract} fetchBalance={fetchBalance} />} path="/" />
-							<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-document" />
-							<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-document" />
-							<Route element={<YourDocuments senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-documents" />
-						</Routes>
-						<Footer />
+							<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
+							<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
+							<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
+							<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
+						</Routes>   
 					</main>
 				) : <Loader />
 			) : (

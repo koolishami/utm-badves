@@ -1,10 +1,10 @@
 import algosdk from "algosdk";
 import * as algo from "./constants";
 /* eslint import/no-webpack-loader-syntax: off */
-import approvalProgram from "!raw-loader!../contracts/certificate_contract_approval.teal";
-import clearProgram from "!raw-loader!../contracts/certificate_contract_clear.teal";
+import approvalProgram from "!!raw-loader!../contracts/certificate_contract_approval.teal";
+import clearProgram from "!!raw-loader!../contracts/certificate_contract_clear.teal";
 
-export interface Doc {
+export interface Cert {
     name: string;
     hash: string;
 }
@@ -14,8 +14,8 @@ export interface Contract {
     appAddress: string;
     creatorAddress: string;
     userOptedIn: boolean;
-    totalDocument: number;
-    userDocuments: any[];
+    totalCertificate: number;
+    userCertificates: any[];
 }
 
 // Compile smart contract in .teal format to program
@@ -28,14 +28,14 @@ const compileProgram = async (programSource: any) => {
 
 // CREATE Contract: ApplicationCreateTxn
 export const createContract = async (senderAddress: string) => {
-    console.log("Deploying new doc reg application...");
+    console.log("Deploying new cert reg application...");
     let params = await algo.algodClient.getTransactionParams().do();
     // Compile programs
     const compiledApprovalProgram = await compileProgram(approvalProgram);
     const compiledClearProgram = await compileProgram(clearProgram);
 
     // Build note to identify transaction later and required app args as Uint8Arrays
-    let note = new TextEncoder().encode(algo.docRegistryNote);
+    let note = new TextEncoder().encode(algo.certRegistryNote);
 
     // Create ApplicationCreateTxn
     let txn = algosdk.makeApplicationCreateTxnFromObject({
@@ -123,9 +123,9 @@ export const optIn = async (senderAddress: string) => {
     console.log("Opted-in to app-id:", transactionResponse["txn"]["txn"]["apid"]);
 };
 
-// ADD DOCUMENT: Group transaction consisting of ApplicationCallTxn and PaymentTxn
-export const addDoc = async (senderAddress: string, doc: Doc, contract: Contract) => {
-    console.log("Adding document...");
+// ADD CERTIFICATE: Group transaction consisting of ApplicationCallTxn and PaymentTxn
+export const addCert = async (senderAddress: string, cert: Cert, contract: Contract) => {
+    console.log("Adding certificate...");
 
     if (algo.appId === Number(0)) return
 
@@ -133,9 +133,9 @@ export const addDoc = async (senderAddress: string, doc: Doc, contract: Contract
 
     // Build required app args as Uint8Array
     let addArg = new TextEncoder().encode("add");
-    let docNameArg = new TextEncoder().encode(doc.name);
-    let docHashArg = new TextEncoder().encode(doc.hash);
-    let appArgs = [addArg, docNameArg, docHashArg];
+    let certNameArg = new TextEncoder().encode(cert.name);
+    let certHashArg = new TextEncoder().encode(cert.hash);
+    let appArgs = [addArg, certNameArg, certHashArg];
 
     // Create ApplicationCallTxn
     let appCallTxn = algosdk.makeApplicationCallTxnFromObject({
@@ -182,9 +182,9 @@ export const addDoc = async (senderAddress: string, doc: Doc, contract: Contract
 };
 
 
-// CHECK DOCUMENT: Group transaction consisting of ApplicationCallTxn and PaymentTxn
-export const checkDoc = async (senderAddress: string, doc: Doc, contract: Contract) => {
-    console.log("Checking document...");
+// CHECK CERTIFICATE: Group transaction consisting of ApplicationCallTxn and PaymentTxn
+export const checkCert = async (senderAddress: string, cert: Cert, contract: Contract) => {
+    console.log("Checking certificate...");
 
     if (algo.appId === Number(0)) return
 
@@ -192,8 +192,8 @@ export const checkDoc = async (senderAddress: string, doc: Doc, contract: Contra
 
     // Build required app args as Uint8Array
     let addArg = new TextEncoder().encode("check");
-    let docHashArg = new TextEncoder().encode(doc.hash);
-    let appArgs = [addArg, docHashArg];
+    let certHashArg = new TextEncoder().encode(cert.hash);
+    let appArgs = [addArg, certHashArg];
 
     // Create ApplicationCallTxn
     let appCallTxn = algosdk.makeApplicationCallTxnFromObject({
@@ -239,9 +239,9 @@ export const checkDoc = async (senderAddress: string, doc: Doc, contract: Contra
     );
 };
 
-// DELETING DOCUMENT:  ApplicationCallTxn
-export const deleteDoc = async (senderAddress: string, key: string) => {
-    console.log("Deleting document...");
+// DELETING CERTIFICATE:  ApplicationCallTxn
+export const deleteCert = async (senderAddress: string, key: string) => {
+    console.log("Deleting certificate...");
 
     if (algo.appId === Number(0)) return
 
@@ -332,7 +332,7 @@ export const getContractData = async (senderAddress: string) => {
     console.log("Getting Registry Data...");
 
     let contract: Contract = algo.contractTemplate;
-
+    console.log(algo.appId)
     if (algo.appId === Number(0)) return contract
 
     // Step 2: Get Registry application by application id
@@ -342,6 +342,7 @@ export const getContractData = async (senderAddress: string) => {
         contract = contract_;
     }
     console.log("Registry data Fetched...");
+    console.log(contract)
     return contract;
 };
 
@@ -352,31 +353,38 @@ const getApplication = async (appId: number, senderAddress: string) => {
             .lookupApplications(appId)
             .includeAll(true)
             .do();
+        console.log(response)
+
         if (response.application.deleted) {
             return null;
         }
+        console.log("ha tak masuk ke")
         let globalState = response.application.params["global-state"];
-
-        // 2. Parse fields of response and return proposal
+        
+        console.log("globalState "+globalState)
         let appAddress = algosdk.getApplicationAddress(appId);
+        console.log("konek")
+        console.log(appAddress)
+
         let creatorAddress = response.application.params.creator;
         let userOptedIn = false;
-        let totalDocument = 0;
-        let userDocuments = [];
+        let totalCertificate = 0;
+        let userCertificates = [];
+        console.log("ha tak masuk ke")
+        console.log(creatorAddress)
 
         if (globalState) {
-            totalDocument = globalState.length
+            totalCertificate = globalState.length
         }
 
         let userInfo = await algo.indexerClient
             .lookupAccountAppLocalStates(senderAddress)
             .do();
-
         let appLocalState = userInfo["apps-local-states"];
         for (let i = 0; i < appLocalState.length; i++) {
             if (appId === appLocalState[i]["id"]) {
                 userOptedIn = true;
-                userDocuments = appLocalState[i]["key-value"];
+                userCertificates = appLocalState[i]["key-value"];
             }
         }
         return {
@@ -384,8 +392,8 @@ const getApplication = async (appId: number, senderAddress: string) => {
             appAddress,
             creatorAddress,
             userOptedIn,
-            totalDocument,
-            userDocuments,
+            totalCertificate,
+            userCertificates,
         };
     } catch (err) {
         return null;

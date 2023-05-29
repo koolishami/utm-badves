@@ -19,8 +19,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 		var reader = new FileReader();
 		reader.onload = function () {
 			//@ts-ignore
-			let documentHash = sha3_256(reader.result);
-			setHash(documentHash)
+			let certificateHash = sha3_256(reader.result);
+			setHash(certificateHash)
 		};
 		reader.readAsBinaryString(file);
 	}
@@ -49,13 +49,13 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			});
 	};
 
-	const addDocument = async (doc: registry.Doc) => {
+	const addCertficate = async (cert: registry.Cert) => {
 		setLoading(true);
-		toast.loading(`Adding Document ${hash.toString().slice(0, 10)} to registry`)
-		registry.addDoc(senderAddress, doc, contract)
+		toast.loading(`Adding Certificate ${hash.toString().slice(0, 10)} to registry`)
+		registry.addCert(senderAddress, cert, contract)
 			.then(() => {
 				toast.dismiss()
-				toast.success(`Document ${hash.toString().slice(0, 10)} added successfully.`);
+				toast.success(`Certificate ${hash.toString().slice(0, 10)} added successfully.`);
 				setTimeout(() => {
 					update();
 				}, 2000);
@@ -63,7 +63,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				console.log({ error });
 				toast.dismiss()
 				if (error.message.slice(-39) === "transaction rejected by ApprovalProgram") {
-					toast.error(`Document ${hash.toString().slice(0, 10)} already exists on registry.`);
+					toast.error(`Certificate ${hash.toString().slice(0, 10)} already exists on registry.`);
 				} else {
 					toast.error(`${error.message}`)
 				}
@@ -73,19 +73,19 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	};
 
 
-	const verifyDocument = async (doc: registry.Doc) => {
-		toast.loading(`Checking registry for document ${hash.toString().slice(0, 10)}`)
+	const verifyCertificate = async (cert: registry.Cert) => {
+		toast.loading(`Checking registry for certificate ${hash.toString().slice(0, 10)}`)
 		setLoading(true);
-		registry.checkDoc(senderAddress, doc, contract)
+		registry.checkCert (senderAddress, cert, contract)
 			.then(() => {
 				toast.dismiss()
-				toast.success(`Document ${hash.toString().slice(0, 10)} is valid.`);
+				toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
 				fetchBalance(senderAddress);
 			}).catch(error => {
 				console.log({ error });
 				toast.dismiss()
 				if (error.message.slice(-39) === "transaction rejected by ApprovalProgram") {
-					toast.error(`Document ${hash.toString().slice(0, 10)} is not valid.`);
+					toast.error(`Certificate ${hash.toString().slice(0, 10)} is not valid.`);
 				} else {
 					toast.error(`${error.message}`)
 				}
@@ -99,15 +99,15 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
 
-		if (!hash && !contract.userOptedIn && id === "documentForUpload") {
+		if (!hash && !contract.userOptedIn && id === "certificateForUpload") {
 			optIn()
 		} else if (!hash) {
 			return;
-		} else if (id === "documentToVerify") {
-			verifyDocument({ name, hash })
-		} else if (id === "documentForUpload") {
+		} else if (id === "certificateToVerify") {
+			verifyCertificate({ name, hash })
+		} else if (id === "certificateForUpload") {
 			let name_n_date = name + "-" + dateAdded;
-			addDocument({ name: name_n_date, hash })
+			addCertficate({ name: name_n_date, hash })
 		} else {
 			console.log("invalid ID")
 		}
@@ -120,17 +120,17 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				<Form.Control
 					id={id}
 					type="file"
-					disabled={!contract.userOptedIn && id === "documentForUpload"}
+					disabled={!contract.userOptedIn && id === "certificateForUpload"}
 					onChange={(e: any) => handleOnChange(e.target.files[0])}
 				/>
 			</Form.Group>
 			<Button type="submit" variant="success" id={`${id}Button`}>
 				{loading ?
 					(<>
-						<span> {id === "documentForUpload" ? contract.userOptedIn ? "Uploading" : "Opting in" : "Verifying"} </span>
+						<span> {id === "certificateForUpload" ? contract.userOptedIn ? "Uploading" : "Opting in" : "Verifying"} </span>
 						<Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" />
 					</>)
-					: id === "documentForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Check Document"
+					: id === "certificateForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Check Certificate"
 				}
 			</Button>
 		</Form>

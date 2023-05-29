@@ -51,5 +51,8 @@
   },
   "devDependencies": {
     "raw-loader": "^4.0.2"
+  },
+  "overrides": {
+    "buffer": "6.0.3"
   }
 }

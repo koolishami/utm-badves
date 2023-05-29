@@ -8,14 +8,14 @@ export const Header = () => {
 			<Link to="/" id="linkHome">
 				Home
 			</Link>
-			<Link to="/submit-document" id="linkSubmitDocument">
-				Submit Document
+			<Link to="/submit-certificate" id="linkSubmitCertificate">
+				Submit Certificate
 			</Link>
-			<Link to="/verify-document" id="linkVerifyDocument">
-				Verify Document
+			<Link to="/verify-certificate" id="linkVerifyCertificate">
+				Verify Certificate
 			</Link>
-			<Link to="/your-documents" id="linkYourDocuments">
-				Your Documents
+			<Link to="/your-certificates" id="linkYourCertificates">
+				Your Certificates
 			</Link>
 		</header>
 	)

@@ -28,28 +28,28 @@ export const myAlgoConnect = new MyAlgoConnect();
 export const minRound = 29556983;
 
 // https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md
-export const docRegistryNote = "docregistry:uv01";
+export const certRegistryNote = "certregistry:uv02";
 
 // Maximum local storage allocation, immutable
 export const numLocalInts = 0;
 // Local variables stored as Int = 0
 export const numLocalBytes = 16;
-// Local variables stored as Bytes: doc hashes
+// Local variables stored as Bytes: cert hashes
 
 // Maximum global storage allocation, immutable
 export const numGlobalInts = 64;
-// Global variables stored as Int: doc hashes add date
+// Global variables stored as Int: cert hashes add date
 export const numGlobalBytes = 0;
 // Global variables stored as Bytes = 0
 
 // App ID
-export const appId = 115858618;
+export const appId = 222338193;
 
 export const contractTemplate: Contract = {
   appId: 0,
-  appAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+  appAddress: "URRVMU5OQOPQKJFWHDRDT3Q7GRJLYJ5MJ6OGUHDD5U573M4YXQAANDZ3KU",
   creatorAddress: "0",
   userOptedIn: false,
-  totalDocument: 0,
-  userDocuments: [],
+  totalCertificate: 0,
+  userCertificates: [],
 };
