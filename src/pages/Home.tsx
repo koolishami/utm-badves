@@ -3,6 +3,7 @@ import { Button, Spinner } from "react-bootstrap"
 import { toast } from "react-toastify";
 import { Contract, createContract } from "../utils/registry";
 import { truncateAddress } from "../utils/conversions";
+import styles from "../Pages.module.css"
 
 export const Home: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
 	const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 	}
 
 	return (
-		<div>
+		<div className={styles.content}>
 			<section id="viewHome" className="my-5">
 				<h1>Certificate Registry</h1>
 				Welcome to the "Certificate Registry" DApp. This decentralized app runs on
@@ -37,11 +38,11 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 						publish date.
 					</li>
 					<li>
-						<b className="fw-bold">Users</b> can submit new certificates
+						<b className="fw-bold">Admin</b> can submit new certificates
 						to be stored on the blockchain.
 					</li>
 					<li>
-						<b className="fw-bold">Users</b> can verify the existence of certain
+						<b className="fw-bold">Blockchain users</b> can verify the existence of certain
 						certificate in the registry.
 					</li>
 					<li>
@@ -62,7 +63,7 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 					</li>
 				</ul>
 				{contract.appId === 0 ? (
-					<Button variant="success" id="Button" onClick={() => deployContract()}>
+					<Button className={styles.btn} variant="success" id="Button" onClick={() => deployContract()}>
 						{loading ?
 							(<>
 								<span>Deploying...</span>

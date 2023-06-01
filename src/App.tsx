@@ -7,7 +7,6 @@ import { Route, Routes } from "react-router-dom"
 import { toast } from "react-toastify";
 import { indexerClient, myAlgoConnect } from "./utils/constants";
 import Wallet from "./components/Wallet"
-import coverImg from "./assets/img/registry.jpeg";
 import backgroundImage from "./assets/img/UTM-background.jpg"
 import { Notification } from "./components/Notifications"
 import Cover from "./components/Cover";
@@ -19,6 +18,7 @@ import { YourCertificates } from "./pages/YourCertificates"
 import { Contract, getContractData } from "./utils/registry";
 import { contractTemplate } from "./utils/constants"
 import Loader from "./components/Loader"
+import styles from "./Pages.module.css"
 
 
 function App() {
@@ -93,21 +93,23 @@ function App() {
 									address={address}
 									name={name}
 									amount={balance}
-									symbol="NEAR"
+									symbol="TEST"
 									disconnect={disconnect}
 								/>
 							</Nav.Item>
 						</Nav>
-						<Routes>
-							<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
-							<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
-							<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
-							<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
-						</Routes>   
+						<div className={styles.wrapper}>
+							<Routes>
+								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
+								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
+								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
+								<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
+							</Routes>   
+						</div>
 					</main>
 				) : <Loader />
 			) : (
-				<Cover name="UTM-BADVES" login={connectWallet} coverImg={coverImg} backgroundImage={backgroundImage} />
+				<Cover name="UTM-BADVES" login={connectWallet} backgroundImage={backgroundImage} />
 			)}
 		</>
 

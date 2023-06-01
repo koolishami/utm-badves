@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { toast } from "react-toastify";
 import { Form, Button, Spinner } from "react-bootstrap"
 import { sha3_256 } from "js-sha3"
+import styles from "../Pages.module.css"
 import * as registry from "../utils/registry"
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
@@ -124,13 +125,13 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					onChange={(e: any) => handleOnChange(e.target.files[0])}
 				/>
 			</Form.Group>
-			<Button type="submit" variant="success" id={`${id}Button`}>
+			<Button className={styles.btn} style={{boxShadow: "5px 5px 3px rgba(46, 46, 46, 0.62)"}} type="submit" variant="success" id={`${id}Button`}>
 				{loading ?
 					(<>
 						<span> {id === "certificateForUpload" ? contract.userOptedIn ? "Uploading" : "Opting in" : "Verifying"} </span>
 						<Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" />
 					</>)
-					: id === "certificateForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Check Certificate"
+					: id === "certificateForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Verify"
 				}
 			</Button>
 		</Form>

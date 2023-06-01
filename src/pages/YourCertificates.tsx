@@ -46,7 +46,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
 
     return (
         <div className="my-5">
-            <h5 className="fw-bold">Your Certificates</h5>
+            <h1>Your Certificates</h1>
             <p>
                 Overview of all certificates you have uploaded to the contract.
             </p>
@@ -74,16 +74,17 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                                     </span>
                                 </td>
                                 <td className="relative w-1/4 border-t border-gray-800 px-4 py-3 text-right">
-                                    <Button
-                                        variant="outline-danger"
-                                        onClick={() => deleteCertificate(certificate)}
-                                        className="btn"
-                                    >
-                                        {loading ? activeCert === getName(certificate) ?
-                                            <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" /> : <i className="bi bi-trash"></i>
-                                            : <i className="bi bi-trash"></i>
-                                        }
-                                    </Button>
+                                        <Button
+                                            color="rgb(92, 0, 31)"
+                                            variant="outline-danger"
+                                            onClick={() => deleteCertificate(certificate)}
+                                            className="btn"
+                                        >
+                                            {loading ? activeCert === getName(certificate) ?
+                                                <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" /> : <i className="bi bi-trash"></i>
+                                                : <i className="bi bi-trash"></i>
+                                            }
+                                        </Button>
                                 </td>
                             </tr>
                         ))}

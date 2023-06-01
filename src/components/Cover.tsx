@@ -3,12 +3,11 @@ import { Button } from "react-bootstrap";
 
 interface Props {
   name: string,
-  coverImg: string,
   backgroundImage: string,
   login: Function,
 }
 
-const Cover: React.FC<Props> = ({ name, coverImg, backgroundImage, login }) => {
+const Cover: React.FC<Props> = ({ name, backgroundImage, login }) => {
   if (name) {
     return (
       <div
