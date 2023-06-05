@@ -1,9 +1,15 @@
 import React, { useState } from "react"
 import { toast } from "react-toastify";
-import { Form, Button, Spinner } from "react-bootstrap"
+import { Form, Button, Spinner, Col, Row } from "react-bootstrap"
 import { sha3_256 } from "js-sha3"
 import styles from "../Pages.module.css"
 import * as registry from "../utils/registry"
+import {
+	ref,
+	uploadBytes,
+	getDownloadURL,
+} from "firebase/storage";
+import { storage } from "../utils/firebase";
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
 
@@ -14,6 +20,21 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const dateAdded = Date.now().toString();
 
 	const [loading, setLoading] = useState(false);
+
+	const [fileUpload, setFileUpload] = useState(null);
+	const [fileUrls, setFileUrls] = useState<string[]>([]);
+
+	const [verified, setVerified] = useState(false);
+
+	const uploadFile = () => {
+		if (fileUpload == null) return;
+		const fileRef = ref(storage, `certificates/${name}`);
+		uploadBytes(fileRef, fileUpload).then((snapshot) => {
+			getDownloadURL(snapshot.ref).then((url) => {
+				setFileUrls((prev) => [...prev, url]);
+		  	});
+		});
+	};
 
 	function handleOnChange(file: any) {
 		setName(file.name);
@@ -60,6 +81,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				setTimeout(() => {
 					update();
 				}, 2000);
+				uploadFile();
 			}).catch(error => {
 				console.log({ error });
 				toast.dismiss()
@@ -81,6 +103,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			.then(() => {
 				toast.dismiss()
 				toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
+				toast.success("Showing graduate's information..");
 				fetchBalance(senderAddress);
 			}).catch(error => {
 				console.log({ error });
@@ -99,7 +122,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-
 		if (!hash && !contract.userOptedIn && id === "certificateForUpload") {
 			optIn()
 		} else if (!hash) {
@@ -116,24 +138,85 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 
 	return (
-		<Form onSubmit={onSubmit} className="mt-4">
-			<Form.Group className="my-2">
-				<Form.Control
-					id={id}
-					type="file"
-					disabled={!contract.userOptedIn && id === "certificateForUpload"}
-					onChange={(e: any) => handleOnChange(e.target.files[0])}
-				/>
-			</Form.Group>
-			<Button className={styles.btn} style={{boxShadow: "5px 5px 3px rgba(46, 46, 46, 0.62)"}} type="submit" variant="success" id={`${id}Button`}>
-				{loading ?
-					(<>
-						<span> {id === "certificateForUpload" ? contract.userOptedIn ? "Uploading" : "Opting in" : "Verifying"} </span>
-						<Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" />
-					</>)
-					: id === "certificateForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Verify"
-				}
-			</Button>
-		</Form>
+		<>
+			<Form onSubmit={onSubmit} className="mt-4">
+				<Form.Group className="my-2">
+					<Form.Control
+						id={id}
+						type="file"
+						disabled={!contract.userOptedIn && id === "certificateForUpload"}
+						onChange={(e: any) => {
+							handleOnChange(e.target.files[0]);
+							setFileUpload(e.target.files[0]);}}
+					/>
+				</Form.Group>
+				<Button 
+					bsPrefix="btnCustom"
+					className={styles.btnCustom}
+					type="submit"
+					variant="default"
+					id={`${id}Button`}>
+					{loading ?
+						(<>
+							<span> {id === "certificateForUpload" ? contract.userOptedIn ? "Uploading" : "Opting in" : "Verifying"} </span>
+							<Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" />
+						</>)
+						: id === "certificateForUpload" ? contract.userOptedIn ? "Upload" : "Opt In" : "Verify"
+					}
+				</Button>
+			</Form>
+			{verified && (
+				<Form>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextName">
+						<Form.Label column sm="2">
+							Name
+						</Form.Label>
+						<Col sm="10">
+							<Form.Control plaintext readOnly defaultValue="email@example.com" />
+						</Col>
+					</Form.Group>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextMatrixNum">
+						<Form.Label column sm="2">
+							Matrix Num
+						</Form.Label>
+						<Col sm="10">
+							<Form.Control plaintext readOnly defaultValue="email@example.com" />
+						</Col>
+					</Form.Group>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextCourse">
+						<Form.Label column sm="2">
+							Course
+						</Form.Label>
+						<Col sm="10">
+							<Form.Control plaintext readOnly defaultValue="email@example.com" />
+						</Col>
+					</Form.Group>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextGradYear">
+						<Form.Label column sm="2">
+							Graduation Year
+						</Form.Label>
+						<Col sm="10">
+							<Form.Control plaintext readOnly defaultValue="email@example.com" />
+						</Col>
+					</Form.Group>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextCGPA">
+						<Form.Label column sm="2">
+							CGPA
+						</Form.Label>
+						<Col sm="10">
+							<Form.Control plaintext readOnly defaultValue="email@example.com" />
+						</Col>
+					</Form.Group>
+					<Form.Group as={Row} className="mb-3" controlId="formPlaintextAlgoExplorer">
+						<Form.Label column sm="2">
+							Algorand Explorer Link
+						</Form.Label>
+						<Col sm="10">
+						<Form.Control plaintext readOnly defaultValue="email@example.com" />
+					</Col>
+					</Form.Group>
+				</Form>
+			)}
+		</>
 	)
 }

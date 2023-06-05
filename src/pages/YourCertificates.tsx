@@ -3,6 +3,12 @@ import { Button, Spinner } from "react-bootstrap"
 import { toast } from "react-toastify";
 import { base64ToUTF8String, formatTime } from "../utils/conversions";
 import { Contract, deleteCert } from "../utils/registry";
+import {
+	ref,
+	getDownloadURL,
+    deleteObject
+} from "firebase/storage";
+import { storage } from "../utils/firebase";
 
 export const YourCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
     const [loading, setLoading] = useState(false);
@@ -32,10 +38,18 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
         let key = base64ToUTF8String(cert["key"])
         deleteCert(senderAddress, key)
             .then(() => {
-                toast.success(`${certName} deleted successfully`);
-                setTimeout(() => {
-                    update();
-                }, 3000);
+                let end = key.length - 14;
+                const fileName = key.substring(0, end)
+                const fileRef = ref(storage, `images/${fileName}`)
+                deleteObject(fileRef).then(() => {
+                    toast.success(`${certName} deleted successfully`);                    
+                    setTimeout(() => {
+                        update();
+                    }, 3000);
+                }).catch(error => {
+                    console.log ({error});
+                    toast.error(`Failed to delete ${certName}`);
+                });
             }).catch(error => {
                 console.log({ error });
                 toast.error(`Failed to delete ${certName}`);
@@ -44,6 +58,18 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
             });;
     }
 
+    const openFile = async (cert: any) => {
+        let key = base64ToUTF8String(cert["key"]);
+        console.log(key);
+        let end = key.length - 14;
+        const fileName = key.substring(0, end)
+        const fileRef = ref(storage, `images/${fileName}`)
+        const downloadURL = await getDownloadURL(fileRef);
+        window.open(downloadURL, '_blank');
+    }
+
+
+
     return (
         <div className="my-5">
             <h1>Your Certificates</h1>
@@ -51,29 +77,36 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 Overview of all certificates you have uploaded to the contract.
             </p>
 
-            <div className="bg-gray-900 rounded-sm">
-                <table className="w-full text-sm">
+            <div className="my-1" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                <table className="w-full text-sm border border-1">
                     <thead>
                         <tr>
-                            <td className="px-4 py-3">Name</td>
-                            <td className="px-4 py-3">Date Added</td>
-                            <td className="text-right px-4 py-3">Action</td>
+                            <td className="px-3 py-3 border border-1">Name</td>
+                            <td className="px-3 py-3 border border-1">Date Added</td>
+                            <td className="text-right px-4 py-3 border border-1">Action</td>
                         </tr>
                     </thead>
-                    <tbody className="font-mono">
+                    <tbody className="font-mono border border-1">
                         {contract.userCertificates?.map(certificate => (
                             <tr key={certificate["key"]}>
-                                <td className="border-t border-gray-800 px-4 py-3">
+                                <td className="border border-1 px-3 py-3">
                                     <span className="flex items-center space-x-1">
                                         {getName(certificate)}
                                     </span>
                                 </td>
-                                <td className="relative w-1/4 border-t border-gray-800">
-                                    <span className="absolute inset-0 truncate px-4 py-3">
+                                <td className="border border-1 px-2">
+                                    <span className="flex items-center space-x-1">
                                         {getDate(certificate)}
                                     </span>
                                 </td>
-                                <td className="relative w-1/4 border-t border-gray-800 px-4 py-3 text-right">
+                                <td className="w-1/4 border border-1 flex justify-end items-center">
+                                        <Button
+                                            color="rgb(0, 123, 255)"
+                                            variant="outline-primary"
+                                            onClick={() => openFile(certificate)}
+                                            className="btn m-1"
+                                        ><i className="bi bi-eye"></i>
+                                        </Button>
                                         <Button
                                             color="rgb(92, 0, 31)"
                                             variant="outline-danger"
@@ -81,7 +114,15 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                                             className="btn"
                                         >
                                             {loading ? activeCert === getName(certificate) ?
-                                                <Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" /> : <i className="bi bi-trash"></i>
+                                                <Spinner 
+                                                    animation="border" 
+                                                    as="span" 
+                                                    size="sm" 
+                                                    role="status" 
+                                                    aria-hidden="true" 
+                                                    className="opacity-25" 
+                                                /> 
+                                                : <i className="bi bi-trash"></i>
                                                 : <i className="bi bi-trash"></i>
                                             }
                                         </Button>

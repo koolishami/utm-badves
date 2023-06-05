@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css"
 import "./App.css"
 import { Header } from "./components/Header"
-import { Nav } from "react-bootstrap"
+import { Nav, Button } from "react-bootstrap"
 import { Route, Routes } from "react-router-dom"
 import { toast } from "react-toastify";
 import { indexerClient, myAlgoConnect } from "./utils/constants";
@@ -15,10 +15,12 @@ import { Footer } from "./components/Footer"
 import { Submit } from "./pages/Submit"
 import { Verify } from "./pages/Verify"
 import { YourCertificates } from "./pages/YourCertificates"
+import { Login } from "./pages/Login"
 import { Contract, getContractData } from "./utils/registry";
 import { contractTemplate } from "./utils/constants"
 import Loader from "./components/Loader"
 import styles from "./Pages.module.css"
+import { connect } from "http2"
 
 
 function App() {
@@ -81,38 +83,46 @@ function App() {
 	return (
 		<>
 			<Notification />
-			{address ? (
-				!loading ?(
+				{!loading ?(
 					<main style={{ backgroundImage: `url(${backgroundImage})`, 
 								minHeight: "100vh",
 								backgroundSize: "cover"}}>
-						<Header></Header>
-						<Nav className="justify-content-end pt-3 pb-5">
-							<Nav.Item>
-								<Wallet
-									address={address}
-									name={name}
-									amount={balance}
-									symbol="TEST"
-									disconnect={disconnect}
-								/>
-							</Nav.Item>
-						</Nav>
+						<Header address={address}/>
+						{address && (
+							<Nav className="justify-content-center pt-3 pb-3">
+								<Nav.Item>
+									<Wallet
+										address={address}
+										name={name}
+										amount={balance}
+										symbol="ALGO"
+										disconnect={disconnect}
+									/>
+								</Nav.Item>
+							</Nav>
+						)}
+						{!address && (<div className="d-flex justify-content-center">
+							<Button
+								onClick={() => connectWallet().catch((e: Error) => console.log(e))}
+								variant="outline-light"
+								className="rounded-pill px-3 m-3"
+							>
+								Connect Wallet
+							</Button>
+						</div>
+						)}
 						<div className={styles.wrapper}>
 							<Routes>
 								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
 								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
 								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
 								<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
+								<Route element={<Login senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/login" />
 							</Routes>   
 						</div>
 					</main>
-				) : <Loader />
-			) : (
-				<Cover name="UTM-BADVES" login={connectWallet} backgroundImage={backgroundImage} />
-			)}
+				) : <Loader />}
 		</>
-
 	)
 }
 

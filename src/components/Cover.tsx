@@ -3,8 +3,8 @@ import { Button } from "react-bootstrap";
 
 interface Props {
   name: string,
-  backgroundImage: string,
   login: Function,
+  backgroundImage: string
 }
 
 const Cover: React.FC<Props> = ({ name, backgroundImage, login }) => {

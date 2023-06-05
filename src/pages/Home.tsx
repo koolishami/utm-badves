@@ -30,8 +30,10 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 		<div className={styles.content}>
 			<section id="viewHome" className="my-5">
 				<h1>Certificate Registry</h1>
-				Welcome to the "Certificate Registry" DApp. This decentralized app runs on
-				the Algorand Blockchain network and holds a registry of certificates in on chain.
+				<p>
+					Welcome to the "Certificate Registry" DApp. This decentralized app runs on
+					the Algorand Blockchain network and holds a registry of certificates in on chain.
+				</p>
 				<ul>
 					<li>
 						The registry keeps the hashes of the certificates along with their
@@ -54,16 +56,12 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 					</li>
 					<li>
 						Number of <b className="fw-bold">Documents</b> in registry:{" "}
-						<b className="fw-bold">
-							<a id="docsInRegistry" href="#docsInRegistry">
-								{contract.totalCertificate}
-							</a>
-						</b>{" "}
+						<b className="fw-bold">{contract.totalCertificate}</b>{" "}
 						Documents
 					</li>
 				</ul>
 				{contract.appId === 0 ? (
-					<Button className={styles.btn} variant="success" id="Button" onClick={() => deployContract()}>
+					<Button bsPrefix="btnCustom" className={styles.btnCustom} variant="success" id="Button" onClick={() => deployContract()}>
 						{loading ?
 							(<>
 								<span>Deploying...</span>
