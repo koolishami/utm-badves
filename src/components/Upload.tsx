@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { toast } from "react-toastify";
 import { Form, Button, Spinner, Col, Row } from "react-bootstrap"
 import { sha3_256 } from "js-sha3"
@@ -10,21 +10,22 @@ import {
 	getDownloadURL,
 } from "firebase/storage";
 import { storage } from "../utils/firebase";
+import { db } from "../utils/firebase";
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
 
 	const [hash, setHash] = useState("");
-
 	const [name, setName] = useState("");
-
 	const dateAdded = Date.now().toString();
-
 	const [loading, setLoading] = useState(false);
-
 	const [fileUpload, setFileUpload] = useState(null);
 	const [fileUrls, setFileUrls] = useState<string[]>([]);
-
 	const [verified, setVerified] = useState(false);
+	const [userInfo, SetUserInfo] = useState([]);
+
+	useEffect(() => {
+
+	}, [])
 
 	const uploadFile = () => {
 		if (fileUpload == null) return;

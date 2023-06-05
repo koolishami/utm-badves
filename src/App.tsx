@@ -9,7 +9,6 @@ import { indexerClient, myAlgoConnect } from "./utils/constants";
 import Wallet from "./components/Wallet"
 import backgroundImage from "./assets/img/UTM-background.jpg"
 import { Notification } from "./components/Notifications"
-import Cover from "./components/Cover";
 import { Home } from "./pages/Home"
 import { Footer } from "./components/Footer"
 import { Submit } from "./pages/Submit"
@@ -20,8 +19,15 @@ import { Contract, getContractData } from "./utils/registry";
 import { contractTemplate } from "./utils/constants"
 import Loader from "./components/Loader"
 import styles from "./Pages.module.css"
-import { connect } from "http2"
-
+import { db } from "./utils/firebase"
+import {
+	collection,
+	getDocs,
+	addDoc,
+	getDoc,
+	deleteDoc,
+	doc,
+} from "firebase/firestore";
 
 function App() {
 	const [address, setAddress] = useState("");
@@ -29,6 +35,7 @@ function App() {
 	const [balance, setBalance] = useState(0);
 	const [contract, setContract] = useState<Contract>(contractTemplate);
 	const [loading, setLoading] = useState(false);
+	const [admin, setAdmin] = useState(false);
 
 	const fetchBalance = async (accountAddress: string) => {
 		indexerClient.lookupAccountByID(accountAddress).do()
@@ -49,7 +56,7 @@ function App() {
 				setName(_account.name);
 				fetchBalance(_account.address);
 			}).catch(error => {
-				console.log('Could not connect to MyAlgo wallet');
+				toast.error('Could not connect to MyAlgo wallet');
 				console.error(error);
 			})
 	};
@@ -74,11 +81,28 @@ function App() {
 		let isTemplate = true;
 		if (isTemplate) {
 			getContract();
+			isAdminTrue();
 		}
 		return () => {
 			isTemplate = false;
 		};
 	}, [getContract]);
+
+	const isAdminTrue = async () => {
+		setAdmin(false);
+		const administratorsCollectionRef = collection(db, "users/admins/administrators");
+		const querySnapshot = await getDocs(administratorsCollectionRef);
+		console.log(admin)
+
+		querySnapshot.forEach((doc) => {
+			const adminData = doc.data();
+			if (adminData.address === address) {
+				setAdmin(true);
+				console.log(admin)
+				return; // Exit the loop if admin is found
+			}
+		});
+	}
 
 	return (
 		<>
@@ -87,9 +111,9 @@ function App() {
 					<main style={{ backgroundImage: `url(${backgroundImage})`, 
 								minHeight: "100vh",
 								backgroundSize: "cover"}}>
-						<Header address={address}/>
+						<Header address={address} admin={admin}/>
 						{address && (
-							<Nav className="justify-content-center pt-3 pb-3">
+							<Nav className="justify-content-center pt-0 pb-3">
 								<Nav.Item>
 									<Wallet
 										address={address}
@@ -105,7 +129,7 @@ function App() {
 							<Button
 								onClick={() => connectWallet().catch((e: Error) => console.log(e))}
 								variant="outline-light"
-								className="rounded-pill px-3 m-3"
+								className="rounded-pill px-3 mb-3 mt-0"
 							>
 								Connect Wallet
 							</Button>

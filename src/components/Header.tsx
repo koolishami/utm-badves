@@ -5,9 +5,10 @@ import { Contract } from "../utils/registry";
 
 interface Props {
 	address: string,
+	admin: boolean
 }
 
-export const Header: React.FC<Props> = ({ address }) => {
+export const Header: React.FC<Props> = ({ address, admin }) => {
 	return (
 		<header className={styles.menu} id="menu">
 			<Link to="/" id="linkHome">
@@ -16,7 +17,7 @@ export const Header: React.FC<Props> = ({ address }) => {
 			<Link to="/verify-certificate" id="linkVerifyCertificate">
 				Verify Certificate
 			</Link>
-			{address && (
+			{admin && address && (
 				<Link to="/submit-certificate" id="linkSubmitCertificate">
 					Submit Certificate
 				</Link> 

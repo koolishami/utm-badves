@@ -342,7 +342,6 @@ export const getContractData = async (senderAddress: string) => {
         contract = contract_;
     }
     console.log("Registry data Fetched...");
-    console.log(contract)
     return contract;
 };
 
@@ -358,19 +357,14 @@ const getApplication = async (appId: number, senderAddress: string) => {
         if (response.application.deleted) {
             return null;
         }
-        console.log("ha tak masuk ke")
         let globalState = response.application.params["global-state"];
-        
-        console.log("globalState "+globalState)
         let appAddress = algosdk.getApplicationAddress(appId);
-        console.log("konek")
         console.log(appAddress)
 
         let creatorAddress = response.application.params.creator;
         let userOptedIn = false;
         let totalCertificate = 0;
         let userCertificates = [];
-        console.log("ha tak masuk ke")
         console.log(creatorAddress)
 
         if (globalState) {
