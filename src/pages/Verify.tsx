@@ -3,10 +3,6 @@ import { Upload } from "../components/Upload"
 import styles from "../Pages.module.css"
 import { Contract } from "../utils/registry";
 
-interface Props {
-	verified: boolean;
-}
-
 export const Verify: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
 	return (
 		<div className={styles.h1} >

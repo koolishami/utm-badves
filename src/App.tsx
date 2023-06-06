@@ -28,6 +28,7 @@ import {
 	deleteDoc,
 	doc,
 } from "firebase/firestore";
+import { UserProvider } from './components/UserContext';
 
 function App() {
 	const [address, setAddress] = useState("");
@@ -92,20 +93,18 @@ function App() {
 		setAdmin(false);
 		const administratorsCollectionRef = collection(db, "users/admins/administrators");
 		const querySnapshot = await getDocs(administratorsCollectionRef);
-		console.log(admin)
 
 		querySnapshot.forEach((doc) => {
 			const adminData = doc.data();
 			if (adminData.address === address) {
 				setAdmin(true);
-				console.log(admin)
 				return; // Exit the loop if admin is found
 			}
 		});
 	}
 
 	return (
-		<>
+		<UserProvider>
 			<Notification />
 				{!loading ?(
 					<main style={{ backgroundImage: `url(${backgroundImage})`, 
@@ -138,15 +137,15 @@ function App() {
 						<div className={styles.wrapper}>
 							<Routes>
 								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
-								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
+								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}  />} path="/submit-certificate" />
 								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
 								<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
-								<Route element={<Login senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/login" />
+								<Route element={<Login senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}/>} path="/login" />
 							</Routes>   
 						</div>
 					</main>
 				) : <Loader />}
-		</>
+		</UserProvider>
 	)
 }
 

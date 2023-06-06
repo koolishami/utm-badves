@@ -92,3 +92,23 @@ body {
 .inputBox input::placeholder{
     color:rgb(199, 169, 121);
 }
+
+.customTable {
+    width: 100%;
+    border-spacing: 0;
+}
+
+.customRow {
+    background-color:rgba(46, 46, 46, 0.62); /* Specify your desired color for even rows */
+}
+
+.customLabel {
+    background-color: #eeeeee; /* Specify your desired color for labels */
+    color:rgb(199, 169, 121)
+}
+
+.customData {
+    background-color: #ffffff; /* Specify your desired color for data cells */
+    color:rgb(255, 230, 191)
+}
+  

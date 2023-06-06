@@ -27,9 +27,11 @@ export const Header: React.FC<Props> = ({ address, admin }) => {
 				Your Certificates
 				</Link>
 			)}
-			<Link to="/login" id="linkLogin">
-				Login
-			</Link>
+			{!admin && (
+				<Link to="/login" id="linkLogin">
+					Login
+				</Link>
+			)}
 		</header>
 	)
 }

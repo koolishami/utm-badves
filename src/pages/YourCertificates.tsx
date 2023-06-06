@@ -40,7 +40,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
             .then(() => {
                 let end = key.length - 14;
                 const fileName = key.substring(0, end)
-                const fileRef = ref(storage, `images/${fileName}`)
+                const fileRef = ref(storage, `certificates/${fileName}`)
                 deleteObject(fileRef).then(() => {
                     toast.success(`${certName} deleted successfully`);                    
                     setTimeout(() => {
@@ -63,12 +63,10 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
         console.log(key);
         let end = key.length - 14;
         const fileName = key.substring(0, end)
-        const fileRef = ref(storage, `images/${fileName}`)
+        const fileRef = ref(storage, `certificates/${fileName}`)
         const downloadURL = await getDownloadURL(fileRef);
         window.open(downloadURL, '_blank');
     }
-
-
 
     return (
         <div className="my-5">

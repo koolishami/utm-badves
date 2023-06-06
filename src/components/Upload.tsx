@@ -23,10 +23,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const [verified, setVerified] = useState(false);
 	const [userInfo, SetUserInfo] = useState([]);
 
-	useEffect(() => {
-
-	}, [])
-
 	const uploadFile = () => {
 		if (fileUpload == null) return;
 		const fileRef = ref(storage, `certificates/${name}`);
@@ -35,7 +31,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				setFileUrls((prev) => [...prev, url]);
 		  	});
 		});
-	};
+	}
 
 	function handleOnChange(file: any) {
 		setName(file.name);
@@ -106,6 +102,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
 				toast.success("Showing graduate's information..");
 				fetchBalance(senderAddress);
+				setVerified(true);
+				console.log(verified);
 			}).catch(error => {
 				console.log({ error });
 				toast.dismiss()
@@ -118,7 +116,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				setLoading(false);
 			});
 	};
-
 
 
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -136,7 +133,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			console.log("invalid ID")
 		}
 	}
-
 
 	return (
 		<>
