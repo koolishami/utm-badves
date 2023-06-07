@@ -51,6 +51,7 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
             try {
                 handleFetchEmail();
                 console.log(email, password);
+                // User authentication using Context API (singIn from UserContext)
                 await signIn(email, password);
     
                 // User authentication succeeded, fetch user data from Firestore
@@ -78,11 +79,39 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
         }
     };
 
-    useEffect(() => {
-        if (userDataGlobal) {
-          setUserData(userDataGlobal);
+    const handleLogout = async () => {
+        try {
+          await logout();
+            setUserData(null); // Clear userData state
+            setUserDataGlobal(null); // Clear userDataGlobal in the context
+            setAuthenticated(false);
+        } catch (error) {
+            console.log(error);
+          toast.error("Something went wrong! Unable to logout.");
         }
-      }, [userDataGlobal]);
+    };
+
+    useEffect(() => {
+        // Check if userDataGlobal is already stored in local storage
+        const storedUserData = localStorage.getItem('userDataGlobal');
+        if (storedUserData) {
+          setUserData(JSON.parse(storedUserData));
+        }
+    }, []);
+
+    useEffect(() => {
+        // Update local storage when userDataGlobal changes
+        if (userData) {
+          localStorage.setItem('userDataGlobal', JSON.stringify(userData));
+        } else {
+          localStorage.removeItem('userDataGlobal');
+        }
+    
+        // Check if user is authenticated
+        const isAuthenticated = userData !== null;
+        setAuthenticated(isAuthenticated);
+        console.log(isAuthenticated);
+    }, [userData]);
 
     return (
         <div className={styles.formContainer}>
@@ -154,6 +183,14 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                             </tr>
                         </tbody>
                     </Table>
+                    <Button 
+                        bsPrefix="btnCustom"
+                        className={styles.btnCustom}
+                        type="submit"
+                        variant="default"
+                        onClick={handleLogout}>
+                            Logout
+                    </Button>
                 </div>
             )}
         </div>

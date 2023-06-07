@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { toast } from "react-toastify";
-import { Form, Button, Spinner, Col, Row } from "react-bootstrap"
+import { Form, Button, Spinner, Col, Row, Table } from "react-bootstrap"
 import { sha3_256 } from "js-sha3"
 import styles from "../Pages.module.css"
 import * as registry from "../utils/registry"
@@ -10,7 +10,7 @@ import {
 	getDownloadURL,
 } from "firebase/storage";
 import { storage } from "../utils/firebase";
-import { db } from "../utils/firebase";
+import { UserAuth } from '../components/UserContext';
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
 
@@ -20,8 +20,18 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const [loading, setLoading] = useState(false);
 	const [fileUpload, setFileUpload] = useState(null);
 	const [fileUrls, setFileUrls] = useState<string[]>([]);
-	const [verified, setVerified] = useState(false);
-	const [userInfo, SetUserInfo] = useState([]);
+	const [userData, setUserData] = useState(null);
+
+	const [formData, setFormData] = useState({
+		name: "",
+		email: "",
+		matrixNum: "",
+		course: "",
+		gradYear: "",
+		cgpa: ""
+	});
+
+    const { userDataGlobal, user } = UserAuth();
 
 	const uploadFile = () => {
 		if (fileUpload == null) return;
@@ -102,8 +112,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
 				toast.success("Showing graduate's information..");
 				fetchBalance(senderAddress);
-				setVerified(true);
-				console.log(verified);
 			}).catch(error => {
 				console.log({ error });
 				toast.dismiss()
@@ -134,9 +142,86 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 		}
 	}
 
+	const handleBack = async () => {
+        try {
+            setUserData(null); // Clear userData state
+        } catch (error) {
+            console.log(error);
+          	toast.error("Something went wrong!");
+        }
+    };
+
+
+
 	return (
 		<>
 			<Form onSubmit={onSubmit} className="mt-4">
+				<Form.Group className="my-2">
+					<Form.Control
+						type="text"
+						placeholder="Name"
+						value={formData.name}
+						onChange={(e) =>
+							setFormData({ ...formData, name: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
+				<Form.Group className="my-2">
+						<Form.Control
+						type="email"
+						placeholder="Email"
+						value={formData.email}
+						onChange={(e) =>
+							setFormData({ ...formData, email: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
+				<Form.Group className="my-2">
+						<Form.Control
+						type="text"
+						placeholder="Matrix Number"
+						value={formData.matrixNum}
+						onChange={(e) =>
+							setFormData({ ...formData, matrixNum: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
+				<Form.Group className="my-2">
+						<Form.Control
+						type="text"
+						placeholder="Course"
+						value={formData.course}
+						onChange={(e) =>
+							setFormData({ ...formData, course: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
+				<Form.Group className="my-2">
+						<Form.Control
+						type="text"
+						placeholder="Graduation Year"
+						value={formData.gradYear}
+						onChange={(e) =>
+							setFormData({ ...formData, gradYear: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
+				<Form.Group className="my-2">
+						<Form.Control
+						type="text"
+						placeholder="CGPA"
+						value={formData.cgpa}
+						onChange={(e) =>
+							setFormData({ ...formData, cgpa: e.target.value })
+						}
+						required
+						/>
+				</Form.Group>
 				<Form.Group className="my-2">
 					<Form.Control
 						id={id}
@@ -162,58 +247,51 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					}
 				</Button>
 			</Form>
-			{verified && (
-				<Form>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextName">
-						<Form.Label column sm="2">
-							Name
-						</Form.Label>
-						<Col sm="10">
-							<Form.Control plaintext readOnly defaultValue="email@example.com" />
-						</Col>
-					</Form.Group>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextMatrixNum">
-						<Form.Label column sm="2">
-							Matrix Num
-						</Form.Label>
-						<Col sm="10">
-							<Form.Control plaintext readOnly defaultValue="email@example.com" />
-						</Col>
-					</Form.Group>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextCourse">
-						<Form.Label column sm="2">
-							Course
-						</Form.Label>
-						<Col sm="10">
-							<Form.Control plaintext readOnly defaultValue="email@example.com" />
-						</Col>
-					</Form.Group>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextGradYear">
-						<Form.Label column sm="2">
-							Graduation Year
-						</Form.Label>
-						<Col sm="10">
-							<Form.Control plaintext readOnly defaultValue="email@example.com" />
-						</Col>
-					</Form.Group>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextCGPA">
-						<Form.Label column sm="2">
-							CGPA
-						</Form.Label>
-						<Col sm="10">
-							<Form.Control plaintext readOnly defaultValue="email@example.com" />
-						</Col>
-					</Form.Group>
-					<Form.Group as={Row} className="mb-3" controlId="formPlaintextAlgoExplorer">
-						<Form.Label column sm="2">
-							Algorand Explorer Link
-						</Form.Label>
-						<Col sm="10">
-						<Form.Control plaintext readOnly defaultValue="email@example.com" />
-					</Col>
-					</Form.Group>
-				</Form>
-			)}
+			{/* {userData && (
+                <div>
+                    <h1>Welcome, {userData.username}!</h1>
+					<Table bordered responsive className={styles.customTable}>
+                        <tbody>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Email</td>
+                                <td className={styles.customData}>{userData.email}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Name</td>
+                                <td className={styles.customData}>{userData.name}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Matrix Num</td>
+                                <td className={styles.customData}>{userData.matrixNum}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Course</td>
+                                <td className={styles.customData}>{userData.course}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Graduation Year</td>
+                                <td className={styles.customData}>{userData.gradyear}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>CGPA</td>
+                                <td className={styles.customData}>{userData.cgpa}</td>
+                            </tr>
+                            <tr className={styles.customRow}>
+                                <td className={styles.customLabel}>Algorand Explorer Link</td>
+                                <td className={styles.customData}>email@example.com</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                    <Button 
+                        bsPrefix="btnCustom"
+                        className={styles.btnCustom}
+                        type="submit"
+                        variant="default"
+                        onClick={handleBack}>
+                            Back
+                    </Button>
+                </div>
+            )} */}
 		</>
 	)
 }

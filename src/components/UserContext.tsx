@@ -30,6 +30,7 @@ export const UserProvider: React.FC = ({ children }) => {
    }
 
   const logout = () => {
+      setUserDataGlobal(null);
       return signOut(auth)
   }
 
@@ -37,8 +38,6 @@ export const UserProvider: React.FC = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       console.log(currentUser);
       setUser(currentUser);
-      console.log(userDataGlobal);
-      setUserDataGlobal(userDataGlobal);
     });
     return () => {
       unsubscribe();
