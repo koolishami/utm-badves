@@ -19,7 +19,7 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
     const handleFetchEmail = async () => {
         try {
             const db = getFirestore();
-            const usersCollectionRef = collection(db, 'users/graduates/SECR');
+            const usersCollectionRef = collection(db, 'graduates');
             const querySnapshot = await getDocs(query(usersCollectionRef, where('username', '==', username)));
 
             if (querySnapshot.empty) {
@@ -56,7 +56,7 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
     
                 // User authentication succeeded, fetch user data from Firestore
                 const db = getFirestore();
-                const usersCollectionRef = collection(db, 'users/graduates/SECR');
+                const usersCollectionRef = collection(db, 'graduates');
                 const querySnapshot  = await getDocs(usersCollectionRef);
 
                 if (!querySnapshot.empty) {
@@ -162,8 +162,8 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                                 <td className={styles.customData}>{userData.name}</td>
                             </tr>
                             <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Matrix Num</td>
-                                <td className={styles.customData}>{userData.matrixNum}</td>
+                                <td className={styles.customLabel}>NRIC/Passport No.</td>
+                                <td className={styles.customData}>{userData.nric}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Course</td>
@@ -171,7 +171,7 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Graduation Year</td>
-                                <td className={styles.customData}>{userData.gradyear}</td>
+                                <td className={styles.customData}>{userData.gradYear}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>CGPA</td>

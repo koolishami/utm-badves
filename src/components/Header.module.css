@@ -36,3 +36,8 @@
   transform-origin: left;
   transform: scaleX(1);
 }
+
+.menu a.active::after {
+  transform-origin: left;
+  transform: scaleX(1);
+}

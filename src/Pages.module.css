@@ -14,7 +14,7 @@
     background: transparent;
     border: 2px solid rgba(255, 255, 255, .5);
     border-radius: 20px;
-    backdrop-filter: blur(40px);
+    backdrop-filter: blur(50px);
     box-shadow: 0 0 30px rgba(0, 0, 0, .5);
     display: flex;
     justify-content: center;
@@ -22,6 +22,11 @@
     overflow: hidden;
     margin: 0 auto;
 	padding: 40px;
+}
+
+.submitWrapper {
+    height: 600px; /* Specify the desired height for the Submit component */
+    width: 700px; 
 }
 
 h1 {
@@ -111,4 +116,3 @@ body {
     background-color: #ffffff; /* Specify your desired color for data cells */
     color:rgb(255, 230, 191)
 }
-  

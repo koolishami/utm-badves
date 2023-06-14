@@ -3,7 +3,7 @@ import "../node_modules/bootstrap/dist/css/bootstrap.min.css"
 import "./App.css"
 import { Header } from "./components/Header"
 import { Nav, Button } from "react-bootstrap"
-import { Route, Routes } from "react-router-dom"
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify";
 import { indexerClient, myAlgoConnect } from "./utils/constants";
 import Wallet from "./components/Wallet"
@@ -23,10 +23,6 @@ import { db } from "./utils/firebase"
 import {
 	collection,
 	getDocs,
-	addDoc,
-	getDoc,
-	deleteDoc,
-	doc,
 } from "firebase/firestore";
 import { UserProvider } from './components/UserContext';
 
@@ -37,6 +33,9 @@ function App() {
 	const [contract, setContract] = useState<Contract>(contractTemplate);
 	const [loading, setLoading] = useState(false);
 	const [admin, setAdmin] = useState(false);
+	const navigate = useNavigate();
+	const location = useLocation();
+	const [isSubmitRoute, setIsSubmitRoute] = useState(false);
 
 	const fetchBalance = async (accountAddress: string) => {
 		indexerClient.lookupAccountByID(accountAddress).do()
@@ -56,6 +55,7 @@ function App() {
 				setAddress(_account.address);
 				setName(_account.name);
 				fetchBalance(_account.address);
+				navigate("/");
 			}).catch(error => {
 				toast.error('Could not connect to MyAlgo wallet');
 				console.error(error);
@@ -66,6 +66,8 @@ function App() {
 		setAddress("");
 		setName("");
 		setBalance(0);
+		navigate("/");
+		window.location.reload();
 	};
 
 	const getContract = useCallback(async () => {
@@ -89,9 +91,13 @@ function App() {
 		};
 	}, [getContract]);
 
+	useEffect(() => {
+		setIsSubmitRoute(location.pathname === "/submit-certificate");
+	  }, [location.pathname]);	  
+
 	const isAdminTrue = async () => {
 		setAdmin(false);
-		const administratorsCollectionRef = collection(db, "users/admins/administrators");
+		const administratorsCollectionRef = collection(db, "admins");
 		const querySnapshot = await getDocs(administratorsCollectionRef);
 
 		querySnapshot.forEach((doc) => {
@@ -134,9 +140,9 @@ function App() {
 							</Button>
 						</div>
 						)}
-						<div className={styles.wrapper}>
+						<div className={`${styles.wrapper} ${isSubmitRoute ? styles.submitWrapper : ""}`}>
 							<Routes>
-								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/" />
+								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} admin={admin} />} path="/" />
 								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}  />} path="/submit-certificate" />
 								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
 								<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />

@@ -16,6 +16,8 @@ export interface UserContextType {
   signIn: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
   user: any
+  txid: string,
+  setTxIDUser: (value: string) => void;
 }
 
 export const UserContext = createContext<UserContextType>(null!);
@@ -24,6 +26,7 @@ export const UserProvider: React.FC = ({ children }) => {
   const [userDataGlobal, setUserDataGlobal] = useState(null);
   const [authenticated, setAuthenticated] = useState({});
   const [user, setUser] = useState<User | null>(null);
+  const [txid, setTxIDUser] = useState("");
 
   const signIn = (email: string, password: string) =>  {
     return signInWithEmailAndPassword(auth, email, password)
@@ -51,7 +54,9 @@ export const UserProvider: React.FC = ({ children }) => {
     setAuthenticated,
     signIn,
     logout,
-    user
+    user,
+    txid,
+    setTxIDUser
   };
 
   return (

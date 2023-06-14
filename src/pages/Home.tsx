@@ -5,7 +5,7 @@ import { Contract, createContract } from "../utils/registry";
 import { truncateAddress } from "../utils/conversions";
 import styles from "../Pages.module.css"
 
-export const Home: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
+export const Home: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function, admin:boolean }> = ({ senderAddress, contract, getContract, fetchBalance, admin }) => {
 	const [loading, setLoading] = useState(false);
 
 	const deployContract = async () => {
@@ -40,37 +40,39 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 						publish date.
 					</li>
 					<li>
-						<b className="fw-bold">Admin</b> can submit new certificates
-						to be stored on the blockchain.
-					</li>
-					<li>
 						<b className="fw-bold">Blockchain users</b> can verify the existence of certain
 						certificate in the registry.
 					</li>
-					<li>
-						Contract <b className="fw-bold">address</b> (on Algo testnet):{" "}
-						<a href={`https://goalseeker.purestake.io/algorand/testnet/application/${contract.appId}`} id="contractLink" target="_blank" rel="noreferrer">
-							{" "}
-							{truncateAddress(contract.appAddress)}
-						</a>
-					</li>
-					<li>
-						Number of <b className="fw-bold">Documents</b> in registry:{" "}
-						<b className="fw-bold">{contract.totalCertificate}</b>{" "}
-						Documents
-					</li>
 				</ul>
-				{contract.appId === 0 ? (
-					<Button bsPrefix="btnCustom" className={styles.btnCustom} variant="success" id="Button" onClick={() => deployContract()}>
+				{contract.appId !== 0 ? (
+					<>
+						<ul>
+							<li>
+								Contract <b className="fw-bold">address</b> (on Algo testnet):{" "}
+								<a href={`https://testnet.algoexplorer.io/application/${contract.appId}`} id="contractLink" target="_blank" rel="noreferrer">
+									{" "}
+									{truncateAddress(contract.appAddress)}
+								</a>
+							</li>
+							<li>
+								Number of <b className="fw-bold">Documents</b> in registry:{" "}
+								<b className="fw-bold">{contract.totalCertificate}</b>{" "}
+								Documents
+							</li>
+						</ul>
+
+					</>
+				) : (
+					admin && (
+						<Button bsPrefix="btnCustom" className={styles.btnCustom} variant="success" id="Button" onClick={() => deployContract()}>
 						{loading ?
 							(<>
 								<span>Deploying...</span>
 								<Spinner animation="border" as="span" size="sm" role="status" aria-hidden="true" className="opacity-25" />
 							</>)
-							: "Deploy new contract"
-						}
-					</Button>
-				) : <></>
+							: "Deploy new contract"}
+						</Button>)
+					)
 				}
 			</section>
 		</div>

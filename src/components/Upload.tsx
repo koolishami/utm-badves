@@ -9,8 +9,10 @@ import {
 	uploadBytes,
 	getDownloadURL,
 } from "firebase/storage";
-import { storage } from "../utils/firebase";
+import { auth, storage, db } from "../utils/firebase";
+import { collection, doc, setDoc } from "firebase/firestore";
 import { UserAuth } from '../components/UserContext';
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
 
@@ -21,21 +23,24 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const [fileUpload, setFileUpload] = useState(null);
 	const [fileUrls, setFileUrls] = useState<string[]>([]);
 	const [userData, setUserData] = useState(null);
+	const currentYear = new Date().getFullYear(); // Get the current year
 
 	const [formData, setFormData] = useState({
 		name: "",
+		username: "",
 		email: "",
-		matrixNum: "",
+		nric: "",
 		course: "",
-		gradYear: "",
-		cgpa: ""
+		gradYear: currentYear.toString(),
+		cgpa: "",
+		transactionId: ""
 	});
 
-    const { userDataGlobal, user } = UserAuth();
+	const { logout, txid, setUserDataGlobal } = UserAuth();
 
 	const uploadFile = () => {
 		if (fileUpload == null) return;
-		const fileRef = ref(storage, `certificates/${name}`);
+		const fileRef = ref(storage, `certificates/${formData.username}/${name}`);
 		uploadBytes(fileRef, fileUpload).then((snapshot) => {
 			getDownloadURL(snapshot.ref).then((url) => {
 				setFileUrls((prev) => [...prev, url]);
@@ -82,9 +87,48 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 		setLoading(true);
 		toast.loading(`Adding Certificate ${hash.toString().slice(0, 10)} to registry`)
 		registry.addCert(senderAddress, cert, contract)
-			.then(() => {
+			.then(async () => {
 				toast.dismiss()
 				toast.success(`Certificate ${hash.toString().slice(0, 10)} added successfully.`);
+				// Store form data in Firestore
+				try {
+					console.log(formData)
+					// Create a reference to the "graduates" collection
+					const graduatesCollection = collection(db, "graduates");
+					console.log(graduatesCollection)
+					
+					// Create a document reference using the username as the document ID
+					const graduateDocRef = doc(graduatesCollection, formData.username);
+					console.log(graduateDocRef)
+					
+					// Set the form data in the document
+					await setDoc(graduateDocRef, {
+						name: formData.name,
+						username: formData.username,
+						email: formData.email,
+						nric: formData.nric,
+						course: formData.course,
+						gradYear: formData.gradYear,
+						cgpa: formData.cgpa,
+						transactionId: `https://testnet.algoexplorer.io/tx/${txid}`
+					});
+					toast.success("Form data stored successfully!");
+					console.log("Form data stored successfully!");
+				} catch (error) {
+					toast.error("Error storing form data");
+					console.error("Error storing form data:", error);
+				}
+				try {
+					const email = formData.email;
+					const password = formData.nric;
+					
+					// Create the user with email and password
+					await createUserWithEmailAndPassword(auth, email, password);
+					toast.success("User created successfully!");
+					logout();
+				} catch (error) {
+					console.error("Error creating user:", error);
+				}
 				setTimeout(() => {
 					update();
 				}, 2000);
@@ -125,8 +169,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			});
 	};
 
-
-	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+		console.log(formData);
 		e.preventDefault();
 		if (!hash && !contract.userOptedIn && id === "certificateForUpload") {
 			optIn()
@@ -151,77 +195,102 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
         }
     };
 
-
-
 	return (
 		<>
 			<Form onSubmit={onSubmit} className="mt-4">
-				<Form.Group className="my-2">
-					<Form.Control
-						type="text"
-						placeholder="Name"
-						value={formData.name}
-						onChange={(e) =>
-							setFormData({ ...formData, name: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
-				<Form.Group className="my-2">
-						<Form.Control
-						type="email"
-						placeholder="Email"
-						value={formData.email}
-						onChange={(e) =>
-							setFormData({ ...formData, email: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
-				<Form.Group className="my-2">
-						<Form.Control
-						type="text"
-						placeholder="Matrix Number"
-						value={formData.matrixNum}
-						onChange={(e) =>
-							setFormData({ ...formData, matrixNum: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
-				<Form.Group className="my-2">
-						<Form.Control
-						type="text"
-						placeholder="Course"
-						value={formData.course}
-						onChange={(e) =>
-							setFormData({ ...formData, course: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
-				<Form.Group className="my-2">
-						<Form.Control
-						type="text"
-						placeholder="Graduation Year"
-						value={formData.gradYear}
-						onChange={(e) =>
-							setFormData({ ...formData, gradYear: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
-				<Form.Group className="my-2">
-						<Form.Control
-						type="text"
-						placeholder="CGPA"
-						value={formData.cgpa}
-						onChange={(e) =>
-							setFormData({ ...formData, cgpa: e.target.value })
-						}
-						required
-						/>
-				</Form.Group>
+				{id === "certificateForUpload" && (
+					<>
+						<Form.Group>
+							<Form.Control 
+								className="mb-2"
+								type="text"
+								placeholder="Name"
+								value={formData.name}
+								onChange={(e) =>
+									setFormData({ ...formData, name: e.target.value })
+								}
+								required
+							/>
+							<Form.Control 
+								className="mb-2"
+								type="text"
+								placeholder="Username"
+								value={formData.username}
+								onChange={(e) =>
+									setFormData({ ...formData, username: e.target.value })
+								}
+								required
+							/>
+							<Form.Control
+								className="mb-2"
+								type="email"
+								placeholder="Email"
+								value={formData.email}
+								onChange={(e) =>
+									setFormData({ ...formData, email: e.target.value })
+								}
+								required
+								pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" // Add email validation pattern
+							/>
+							<Form.Control
+								className="mb-2"
+								type="text"
+								placeholder="NRIC/Passport No. (No '-' required)"
+								value={formData.nric}
+								onChange={(e) =>
+									setFormData({ ...formData, nric: e.target.value })
+								}
+								required
+							/>
+							<Form.Select
+								className="mb-2"
+								value={formData.course}
+								onChange={(e) =>
+									setFormData({ ...formData, course: e.target.value })
+								}
+								required
+							>
+									<option value="">Select a course</option>
+									<option value="Bachelor of Computer Science (Software Engineering) with Honors">
+										Bachelor of Computer Science (Software Engineering) with Honors
+									</option>
+									<option value="Bachelor of Computer Science (Bioinformatics)">
+										Bachelor of Computer Science (Bioinformatics)
+									</option>
+									<option value="Bachelor of Computer Science (Graphics and Multimedia Software) with Honors">
+										Bachelor of Computer Science (Graphics and Multimedia Software) with Honors
+									</option>
+									<option value="Bachelor of Computer Science (Data Engineering)">
+										Bachelor of Computer Science (Data Engineering)</option>
+									<option value="Bachelor of Computer Science (Networks and Security) with Honors">
+										Bachelor of Computer Science (Networks and Security) with Honors
+									</option>
+							</Form.Select>
+							<Form.Control
+								className="mb-2"
+								type="text"
+								placeholder="Graduation Year"
+								value={formData.gradYear}
+								onChange={(e) => {
+									const numericValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+    								setFormData({ ...formData, gradYear: numericValue });
+								}}
+								
+								required
+							/>
+							<Form.Control
+								className="mb-2"
+								type="text"
+								placeholder="CGPA"
+								value={formData.cgpa}
+								onChange={(e) =>
+									setFormData({ ...formData, cgpa: e.target.value })
+								}
+								required
+							/>
+						</Form.Group>
+					</>
+				)}
 				<Form.Group className="my-2">
 					<Form.Control
 						id={id}
@@ -247,51 +316,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					}
 				</Button>
 			</Form>
-			{/* {userData && (
-                <div>
-                    <h1>Welcome, {userData.username}!</h1>
-					<Table bordered responsive className={styles.customTable}>
-                        <tbody>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Email</td>
-                                <td className={styles.customData}>{userData.email}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Name</td>
-                                <td className={styles.customData}>{userData.name}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Matrix Num</td>
-                                <td className={styles.customData}>{userData.matrixNum}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Course</td>
-                                <td className={styles.customData}>{userData.course}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Graduation Year</td>
-                                <td className={styles.customData}>{userData.gradyear}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>CGPA</td>
-                                <td className={styles.customData}>{userData.cgpa}</td>
-                            </tr>
-                            <tr className={styles.customRow}>
-                                <td className={styles.customLabel}>Algorand Explorer Link</td>
-                                <td className={styles.customData}>email@example.com</td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                    <Button 
-                        bsPrefix="btnCustom"
-                        className={styles.btnCustom}
-                        type="submit"
-                        variant="default"
-                        onClick={handleBack}>
-                            Back
-                    </Button>
-                </div>
-            )} */}
 		</>
 	)
 }
