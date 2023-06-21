@@ -13,7 +13,7 @@ import { storage, db, auth } from "../utils/firebase";
 import { UserAuth } from "../components/UserContext";
 import styles from "../Pages.module.css"
 import { collection, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
-import { EmailAuthProvider, deleteUser, reauthenticateWithCredential, signOut } from "firebase/auth";
+import { EmailAuthProvider, reauthenticateWithCredential, signOut } from "firebase/auth";
 
 export const YourCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
     const [isFileDeleted, setIsFileDeleted] = useState(false);
     const [password, setPassword] = useState<string>('');
     const [email, setEmail] = useState<string>('');
-    const { signIn, user, logout } = UserAuth();
+    const { signIn, user } = UserAuth();
 
 
     const getName = (cert: any) => {
@@ -57,8 +57,6 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 const userData = querySnapshot.docs[0].data();
                 setEmail(userData.email);
                 setPassword(userData.nric);
-                console.log(userData.email)
-                console.log(email, password)
             }
         } catch (error) {
 			toast.error("Email not found.");
@@ -68,9 +66,6 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
     };
 
     useEffect(() => {
-        if (user) {
-            signOut(auth);
-        }
         const handleDeleteUser = async () => {
             try {
                 const currentUser = auth.currentUser;
@@ -85,6 +80,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 
                 // Re-authenticate the user before deleting the account
                 if (user) {
+                    console.log("Deleting user...")
                     const credential = EmailAuthProvider.credential(email, password);
                     await reauthenticateWithCredential(user, credential);
                     
@@ -94,8 +90,10 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                     // Reset email and password fields
                     setEmail('');
                     setPassword('');
+                    setIsFileDeleted(false);
                     
                     toast.success('User deleted');
+                    console.log('User deleted.')
                 } else {
                     toast.error('User not found');
                     console.log('Ko salah lagi');
@@ -104,13 +102,16 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 console.log(error);
                 toast.error('Error deleting user');
             }
+            console.log(email, password);
         };
-          
+        console.log(email, password);
+        if (user) {
+            signOut(auth);
+        }
         if (email !== '' && password !== '' && isFileDeleted) {
             handleDeleteUser();
         }
-        console.log(email, password);
-    }, [email, password, isFileDeleted]);
+    }, [isFileDeleted]);
 
     const deleteCertificate = async (folderName: string, fileName: string, cert: any) => {
         toast.loading(`Deleting ${fileName} and user ${folderName} from registry`);
@@ -119,7 +120,6 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
         setLoading(true);
 
         await handleFetchEmail(folderName);
-        console.log(email, password)
         let key = base64ToUTF8String(cert["key"]);
         await deleteCert(senderAddress, key)
             .then(async () => {
@@ -270,7 +270,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                     </thead>
                     <tbody className="font-mono border border-1">
                         {fileFolderResults.map((fileFolderResult, index) =>
-                            fileFolderResult.searchResults.map((searchResult, innerIndex) => (
+                            fileFolderResult.searchResults.map((searchResult) => (
                                 <tr key={index}>
                                     <td className="border border-1 px-3 py-3">
                                         <span className="flex items-center space-x-1">{searchResult}</span>

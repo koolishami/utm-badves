@@ -336,7 +336,6 @@ export const getContractData = async (senderAddress: string) => {
     console.log("Getting Registry Data...");
 
     let contract: Contract = algo.contractTemplate;
-    console.log(algo.appId)
     if (algo.appId === Number(0)) return contract
 
     // Step 2: Get Registry application by application id
@@ -356,20 +355,17 @@ const getApplication = async (appId: number, senderAddress: string) => {
             .lookupApplications(appId)
             .includeAll(true)
             .do();
-        console.log(response)
 
         if (response.application.deleted) {
             return null;
         }
         let globalState = response.application.params["global-state"];
         let appAddress = algosdk.getApplicationAddress(appId);
-        console.log(appAddress)
 
         let creatorAddress = response.application.params.creator;
         let userOptedIn = false;
         let totalCertificate = 0;
         let userCertificates = [];
-        console.log(creatorAddress)
 
         if (globalState) {
             totalCertificate = globalState.length

@@ -10,7 +10,6 @@ import Wallet from "./components/Wallet"
 import backgroundImage from "./assets/img/UTM-background.jpg"
 import { Notification } from "./components/Notifications"
 import { Home } from "./pages/Home"
-import { Footer } from "./components/Footer"
 import { Submit } from "./pages/Submit"
 import { Verify } from "./pages/Verify"
 import { YourCertificates } from "./pages/YourCertificates"
@@ -63,7 +62,8 @@ function App() {
 	};
 
 	const disconnect = () => {
-		window.location.reload();
+		window.location.reload()
+		toast.loading(`Disconnecting`)
 		setAddress("");
 		setName("");
 		setBalance(0);
@@ -80,22 +80,7 @@ function App() {
 		}
 	}, [address]);
 
-	useEffect(() => {
-		let isTemplate = true;
-		if (isTemplate) {
-			getContract();
-			isAdminTrue();
-		}
-		return () => {
-			isTemplate = false;
-		};
-	}, [getContract]);
-
-	useEffect(() => {
-		setIsSubmitRoute(location.pathname === "/submit-certificate");
-	}, [location.pathname]);	  
-
-	const isAdminTrue = async () => {
+	const isAdminTrue = useCallback(async () => {
 		setAdmin(false);
 		const administratorsCollectionRef = collection(db, "admins");
 		const querySnapshot = await getDocs(administratorsCollectionRef);
@@ -107,7 +92,22 @@ function App() {
 				return; // Exit the loop if admin is found
 			}
 		});
-	}
+	}, [address])
+
+	useEffect(() => {
+		let isTemplate = true;
+		if (isTemplate) {
+			getContract();
+			isAdminTrue();
+		}
+		return () => {
+			isTemplate = false;
+		};
+	}, [getContract, isAdminTrue]);
+
+	useEffect(() => {
+		setIsSubmitRoute(location.pathname === "/submit-certificate");
+	}, [location.pathname]);	  
 
 	return (
 		<UserProvider>
@@ -140,7 +140,7 @@ function App() {
 							</Button>
 						</div>
 						)}
-						<div className={`${styles.wrapper} ${isSubmitRoute ? styles.submitWrapper : ""}`}>
+						<div className={`${styles.wrapper} ${isSubmitRoute && styles.submitWrapper}`}>
 							<Routes>
 								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} admin={admin} />} path="/" />
 								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}  />} path="/submit-certificate" />

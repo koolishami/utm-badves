@@ -7,11 +7,10 @@ import * as registry from "../utils/registry"
 import {
 	ref,
 	uploadBytes,
-	getDownloadURL,
 	listAll
 } from "firebase/storage";
 import { auth, storage, db } from "../utils/firebase";
-import { collection, doc, getDocs, getFirestore, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { UserAuth } from '../components/UserContext';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
@@ -22,10 +21,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const dateAdded = Date.now().toString();
 	const [loading, setLoading] = useState(false);
 	const [fileUpload, setFileUpload] = useState(null);
-	const [fileUrls, setFileUrls] = useState<string[]>([]);
-	const [userDataVerified, setUserDataVerified] = useState<any>(null);
 	const [addCertSuccess, setAddCertSuccess] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
+    const searchQuery = "";
 	const currentYear = new Date().getFullYear(); // Get the current year
 
 	const [formData, setFormData] = useState({
@@ -43,11 +40,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const uploadFile = () => {
 		if (fileUpload == null) return;
 		const fileRef = ref(storage, `certificates/${formData.username}/${name}`);
-		uploadBytes(fileRef, fileUpload).then((snapshot) => {
-			getDownloadURL(snapshot.ref).then((url) => {
-				setFileUrls((prev) => [...prev, url]);
-		  	});
-		});
+		uploadBytes(fileRef, fileUpload);
 	}
 
 	function handleOnChange(file: any) {
@@ -217,7 +210,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									querySnapshot.forEach((doc) => {
 									const docData = doc.data();
 									if (docData.username === folderNameFound) {
-										setUserDataVerified(docData);
 										setUserDataGlobal(docData);
 										console.log(docData);
 									}
@@ -272,7 +264,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	const handleBack = async () => {
         try {
 			setUserDataGlobal(null);
-            setUserDataVerified(null); // Clear userDataVerified state
 			setIsVerified(false);
         } catch (error) {
             console.log(error);

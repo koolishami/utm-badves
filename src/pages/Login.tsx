@@ -14,7 +14,7 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
 
     const [userData, setUserData] = useState<any>(null);
     const [validated, setValidated] = useState(false);
-    const { setUserDataGlobal, setAuthenticated, signIn, logout } = UserAuth();
+    const { setUserDataGlobal, signIn, logout } = UserAuth();
 
     const handleFetchEmail = async () => {
         try {
@@ -67,7 +67,6 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                             setUserData(docData);
                             console.log(docData);
                             setUserDataGlobal(docData);
-                            setAuthenticated(true);
                         }
                     });
                 } else {
@@ -85,7 +84,6 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
           await logout();
             setUserData(null); // Clear userData state
             setUserDataGlobal(null); // Clear userDataGlobal in the context
-            setAuthenticated(false);
         } catch (error) {
             console.log(error);
           toast.error("Something went wrong! Unable to logout.");
@@ -107,11 +105,6 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
         } else {
           localStorage.removeItem('userDataGlobal');
         }
-    
-        // Check if user is authenticated
-        const isAuthenticated = userData !== null;
-        setAuthenticated(isAuthenticated);
-        console.log(isAuthenticated);
     }, [userData]);
 
     return (

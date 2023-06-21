@@ -31,11 +31,6 @@ export const Header: React.FC<Props> = ({ address, admin }) => {
 					Submit Certificate
 				</Link> 
 			)}
-			{/* {user && (
-				<Link to="/your-certificates" id="linkYourCertificates" className={isActive("/your-certificates")}>
-				Your Certificates
-				</Link>
-			)} */}
 			{admin && (
 				<Link to="/your-certificates" id="linkYourCertificates" className={isActive("/your-certificates")}>
 				Uploaded Certificates

@@ -6,7 +6,7 @@ import styles from "../Pages.module.css"
 export const Submit: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
 	
 	return (
-		<div className={styles.content}>
+		<div className={styles.formContainer}>
 			<h1 className="fw-bold">Submit a Certificate</h1>
 				<ul>
 					<li><b className="fw-bold">Opt In</b> before uploading a certificate.</li>
