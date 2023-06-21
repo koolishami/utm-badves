@@ -63,11 +63,11 @@ function App() {
 	};
 
 	const disconnect = () => {
+		window.location.reload();
 		setAddress("");
 		setName("");
 		setBalance(0);
 		navigate("/");
-		window.location.reload();
 	};
 
 	const getContract = useCallback(async () => {
@@ -93,7 +93,7 @@ function App() {
 
 	useEffect(() => {
 		setIsSubmitRoute(location.pathname === "/submit-certificate");
-	  }, [location.pathname]);	  
+	}, [location.pathname]);	  
 
 	const isAdminTrue = async () => {
 		setAdmin(false);

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Button, Spinner, Form } from "react-bootstrap"
 import { toast } from "react-toastify";
 import { base64ToUTF8String, formatTime } from "../utils/conversions";
@@ -9,19 +9,22 @@ import {
     deleteObject,
     listAll
 } from "firebase/storage";
-import { storage } from "../utils/firebase";
+import { storage, db, auth } from "../utils/firebase";
 import { UserAuth } from "../components/UserContext";
 import styles from "../Pages.module.css"
+import { collection, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
+import { EmailAuthProvider, deleteUser, reauthenticateWithCredential, signOut } from "firebase/auth";
 
 export const YourCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
     const [loading, setLoading] = useState(false);
     const [activeCert, setActiveCert] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const searchResults = useState<string[]>([]);
-    const [certDate, setCertDate] = useState("");
     const [fileFolderResults, setFileFolderResults] = useState<{ searchResults: string[]; folderResults: string[]; certDate: string; cert: Contract; }[]>([]);
 
-    const { userDataGlobal } = UserAuth();
+    const [isFileDeleted, setIsFileDeleted] = useState(false);
+    const [password, setPassword] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
+    const { signIn, user, logout } = UserAuth();
 
 
     const getName = (cert: any) => {
@@ -41,16 +44,89 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
         fetchBalance(senderAddress);
     }
 
-    const deleteCertificate = (folderName: string, fileName: string, cert: any) => {
+    const handleFetchEmail = async (username: string) => {
+        try {
+            const usersCollectionRef = collection(db, 'graduates');
+            const querySnapshot = await getDocs(query(usersCollectionRef, where('username', '==', username)));
+
+            if (querySnapshot.empty) {
+                console.log('No user found with the given username');
+                setEmail('');
+            } else {
+                // Assuming username is unique, retrieve the email from the first matching document
+                const userData = querySnapshot.docs[0].data();
+                setEmail(userData.email);
+                setPassword(userData.nric);
+                console.log(userData.email)
+                console.log(email, password)
+            }
+        } catch (error) {
+			toast.error("Email not found.");
+            console.log('Error fetching email:', error);
+            setEmail('');
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            signOut(auth);
+        }
+        const handleDeleteUser = async () => {
+            try {
+                const currentUser = auth.currentUser;
+                
+                // Sign out the user if they are already signed in
+                if (currentUser) {
+                    signOut(auth);
+                }
+                
+                // Sign in the user with the provided email and password
+                const { user } = await signIn(email, password);
+                
+                // Re-authenticate the user before deleting the account
+                if (user) {
+                    const credential = EmailAuthProvider.credential(email, password);
+                    await reauthenticateWithCredential(user, credential);
+                    
+                    // Delete the user account
+                    await user.delete();
+                    
+                    // Reset email and password fields
+                    setEmail('');
+                    setPassword('');
+                    
+                    toast.success('User deleted');
+                } else {
+                    toast.error('User not found');
+                    console.log('Ko salah lagi');
+                }
+            } catch (error) {
+                console.log(error);
+                toast.error('Error deleting user');
+            }
+        };
+          
+        if (email !== '' && password !== '' && isFileDeleted) {
+            handleDeleteUser();
+        }
+        console.log(email, password);
+    }, [email, password, isFileDeleted]);
+
+    const deleteCertificate = async (folderName: string, fileName: string, cert: any) => {
+        toast.loading(`Deleting ${fileName} and user ${folderName} from registry`);
         let certName = getName(cert);
         setActiveCert(certName);
         setLoading(true);
+
+        await handleFetchEmail(folderName);
+        console.log(email, password)
         let key = base64ToUTF8String(cert["key"]);
-        deleteCert(senderAddress, key)
-            .then(() => {
+        await deleteCert(senderAddress, key)
+            .then(async () => {
                 const fileRef = ref(storage, `certificates/${folderName}/${fileName}`);
                 deleteObject(fileRef)
                 .then(() => {
+                    setIsFileDeleted(true)
                     toast.success(`${certName} deleted successfully`);
                     setTimeout(() => {
                     update();
@@ -60,15 +136,29 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                     console.log({ error });
                     toast.error(`Failed to delete ${certName}`);
                 });
+
+                deleteDoc(doc(db, "graduates", folderName))
+                .then(() => {
+                    toast.success(`Certificate for ${folderName} deleted successfully.`);
+                    setTimeout(() => {
+                        update();
+                    }, 3000);
+                }).catch((error) => {
+                    console.log({ error });
+                    toast.error(`Failed to delete user: ${folderName}`);
+                });
             })
             .catch((error) => {
+                setEmail('');
+                setPassword('');
                 console.log({ error });
                 toast.error(`Failed to delete ${certName}`);
             })
             .finally(() => {
+			    toast.dismiss();
                 setLoading(false);
             });
-      };
+    };
       
     const openFile = async (folderName: string, fileName: string) => {
         const fileRef = ref(storage, `certificates/${folderName}/${fileName}`);
@@ -106,32 +196,31 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                     }
                 });
             }
-            console.log(contract.userCertificates)
-            console.log(contract.appAddress)
+
             const userCertificates = contract.userCertificates || [];
 
             const fileFolderResults = userCertificates.reduce((acc, certificate) => {
                 const certName = getName(certificate);
             
                 Array.from(searchResults).forEach((result: SearchResult) => {
-                if (result.fileName === certName) {
-                    const existingResult = acc.find(
-                        (r: { certName: string; folderName: string; }) => r.certName === certName && r.folderName === result.folderName
-                    );
-            
-                    if (existingResult) {
-                        existingResult.searchResults.push(certName);
-                        console.log(existingResult);
-                    } else {
-                        const resultObj = {
-                            searchResults: [certName],
-                            folderResults: result.folderName,
-                            certDate: getDate(certificate),
-                            cert: certificate,
-                        };
-                        acc.push(resultObj);
+                    if (result.fileName === certName) {
+                        const existingResult = acc.find(
+                            (r: { certName: string; folderName: string; }) => r.certName === certName && r.folderName === result.folderName
+                        );
+                
+                        if (existingResult) {
+                            existingResult.searchResults.push(certName);
+                            console.log(existingResult);
+                        } else {
+                            const resultObj = {
+                                searchResults: [certName],
+                                folderResults: result.folderName,
+                                certDate: getDate(certificate),
+                                cert: certificate,
+                            };
+                            acc.push(resultObj);
+                        }
                     }
-                }
                 });
             
                 return acc;
@@ -166,10 +255,10 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Button bsPrefix="btnCustom" className={styles.btnCustom} variant="default" onClick={handleSearch}>
-                Search
+                    Search
                 </Button>
             </div>
-            {fileFolderResults.length!=0 && (
+            {fileFolderResults.length!==0 && (
                 <div className="my-1" style={{ maxHeight: "250px", overflowY: "auto" }}>
                     <table className="w-full text-sm border border-1">
                     <thead>

@@ -3,7 +3,6 @@ import * as algo from "./constants";
 /* eslint import/no-webpack-loader-syntax: off */
 import approvalProgram from "!!raw-loader!../contracts/certificate_contract_approval.teal";
 import clearProgram from "!!raw-loader!../contracts/certificate_contract_clear.teal";
-import { UserAuth } from "../components/UserContext";
 
 export interface Cert {
     name: string;
@@ -126,7 +125,6 @@ export const optIn = async (senderAddress: string) => {
 
 // ADD CERTIFICATE: Group transaction consisting of ApplicationCallTxn and PaymentTxn
 export const addCert = async (senderAddress: string, cert: Cert, contract: Contract) => {
-    const { setTxIDUser } = UserAuth();
 
     console.log("Adding certificate...");
 
@@ -174,7 +172,6 @@ export const addCert = async (senderAddress: string, cert: Cert, contract: Contr
 
     // Wait for group transaction to be confirmed
     let confirmedTxn = await algosdk.waitForConfirmation(algo.algodClient, tx.txId, 4);
-    setTxIDUser(tx.txId);
 
     // Notify about completion
     console.log(
@@ -183,6 +180,9 @@ export const addCert = async (senderAddress: string, cert: Cert, contract: Contr
         " confirmed in round " +
         confirmedTxn["confirmed-round"]
     );
+    
+    // Return the transaction ID
+    return tx.txId.toString();
 };
 
 

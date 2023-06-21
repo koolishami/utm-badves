@@ -3,7 +3,7 @@ import { Upload } from "../components/Upload"
 import { Contract } from "../utils/registry";
 import styles from "../Pages.module.css"
 
-export const Submit: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function}> = ({ senderAddress, contract, getContract, fetchBalance }) => {
+export const Submit: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
 	
 	return (
 		<div className={styles.content}>

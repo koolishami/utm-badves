@@ -5,6 +5,7 @@ import { Form, Button, InputGroup, Table } from "react-bootstrap";
 import styles from "../Pages.module.css"
 import { toast } from "react-toastify";
 import { UserAuth } from '../components/UserContext';
+import { db } from '../utils/firebase';
 
 export const Login: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function}> = ({ senderAddress, contract, getContract, fetchBalance,  }) => {
     const [username, setUsername] = useState<string>('');
@@ -13,15 +14,15 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
 
     const [userData, setUserData] = useState<any>(null);
     const [validated, setValidated] = useState(false);
-
-    const { setUserDataGlobal, setAuthenticated, signIn, logout, userDataGlobal } = UserAuth();
+    const { setUserDataGlobal, setAuthenticated, signIn, logout } = UserAuth();
 
     const handleFetchEmail = async () => {
         try {
-            const db = getFirestore();
             const usersCollectionRef = collection(db, 'graduates');
+            console.log(usersCollectionRef)
             const querySnapshot = await getDocs(query(usersCollectionRef, where('username', '==', username)));
-
+            console.log(querySnapshot)
+            console.log(querySnapshot.docs[0].data())
             if (querySnapshot.empty) {
                 console.log('No user found with the given username');
                 setEmail('');
@@ -61,13 +62,13 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
 
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach((doc) => {
-                      const docData = doc.data();
-                      if (docData.email === email) {
-                        setUserData(docData);
-                        console.log(docData);
-                        setUserDataGlobal(docData);
-                        setAuthenticated(true);
-                      }
+                        const docData = doc.data();
+                        if (docData.email === email) {
+                            setUserData(docData);
+                            console.log(docData);
+                            setUserDataGlobal(docData);
+                            setAuthenticated(true);
+                        }
                     });
                 } else {
                 console.log('User data not found');
@@ -179,7 +180,11 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Algorand Explorer Link</td>
-                                <td className={styles.customData}>email@example.com</td>
+                                <td className={styles.customData}>
+                                    <a href={userData.transactionId} target="_blank" rel="noopener noreferrer">
+                                        {userData.transactionId}
+                                    </a>
+                                </td>
                             </tr>
                         </tbody>
                     </Table>

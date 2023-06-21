@@ -15,9 +15,9 @@ export interface UserContextType {
   setAuthenticated: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
-  user: any
-  txid: string,
-  setTxIDUser: (value: string) => void;
+  user: any;
+  isVerified: boolean;
+  setIsVerified: (value: boolean) => void;
 }
 
 export const UserContext = createContext<UserContextType>(null!);
@@ -26,11 +26,11 @@ export const UserProvider: React.FC = ({ children }) => {
   const [userDataGlobal, setUserDataGlobal] = useState(null);
   const [authenticated, setAuthenticated] = useState({});
   const [user, setUser] = useState<User | null>(null);
-  const [txid, setTxIDUser] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
 
   const signIn = (email: string, password: string) =>  {
     return signInWithEmailAndPassword(auth, email, password)
-   }
+  }
 
   const logout = () => {
       setUserDataGlobal(null);
@@ -39,7 +39,6 @@ export const UserProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log(currentUser);
       setUser(currentUser);
     });
     return () => {
@@ -55,8 +54,8 @@ export const UserProvider: React.FC = ({ children }) => {
     signIn,
     logout,
     user,
-    txid,
-    setTxIDUser
+    isVerified,
+    setIsVerified,
   };
 
   return (

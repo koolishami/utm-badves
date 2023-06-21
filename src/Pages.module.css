@@ -25,14 +25,21 @@
 }
 
 .submitWrapper {
-    height: 600px; /* Specify the desired height for the Submit component */
+    height: 600px; /* Desired height for the Submit component */
     width: 700px; 
+    transition: .18s ease;
 }
 
 h1 {
     font-size: 2em;
     font-weight: bold;
     color:#f9d394;
+    text-align: center;
+}
+
+h4 {
+    font-weight: bold;
+    color: #f9d394;
     text-align: center;
 }
 
@@ -71,6 +78,7 @@ body {
 
 .formContainer {
     width: 100%;
+    overflow: auto;
 }
 
 .inputBox { 
@@ -115,4 +123,12 @@ body {
 .customData {
     background-color: #ffffff; /* Specify your desired color for data cells */
     color:rgb(255, 230, 191)
+}
+
+td a {
+    color:rgb(255, 230, 191)
+}
+
+td a:hover {
+    color:#E6B451
 }
