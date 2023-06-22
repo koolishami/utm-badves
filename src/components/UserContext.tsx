@@ -9,8 +9,10 @@ import {
 import { auth } from '../utils/firebase';
 
 export interface UserContextType {
-  userDataGlobal: any;
-  setUserDataGlobal: (data: any) => void;
+  userDataGlobalLogin: any;
+  setUserDataGlobalLogin: (data: any) => void;
+  userDataGlobalVerify: any;
+  setUserDataGlobalVerify: (data: any) => void;
   authenticated: any;
   setAuthenticated: (value: boolean) => void;
   signIn: (email: string, password: string) => Promise<UserCredential>;
@@ -23,7 +25,8 @@ export interface UserContextType {
 export const UserContext = createContext<UserContextType>(null!);
 
 export const UserProvider: React.FC = ({ children }) => {
-  const [userDataGlobal, setUserDataGlobal] = useState(null);
+  const [userDataGlobalLogin, setUserDataGlobalLogin] = useState(null);
+  const [userDataGlobalVerify, setUserDataGlobalVerify] = useState(null);
   const [authenticated, setAuthenticated] = useState({});
   const [user, setUser] = useState<User | null>(null);
   const [isVerified, setIsVerified] = useState(false);
@@ -33,7 +36,7 @@ export const UserProvider: React.FC = ({ children }) => {
   }
 
   const logout = () => {
-      setUserDataGlobal(null);
+      setUserDataGlobalLogin(null);
       return signOut(auth)
   }
 
@@ -49,8 +52,10 @@ export const UserProvider: React.FC = ({ children }) => {
   }, []);
 
   const contextValue: UserContextType = {
-    userDataGlobal,
-    setUserDataGlobal,
+    userDataGlobalLogin, 
+    userDataGlobalVerify, 
+    setUserDataGlobalLogin,
+    setUserDataGlobalVerify,
     authenticated,
     setAuthenticated,
     signIn,

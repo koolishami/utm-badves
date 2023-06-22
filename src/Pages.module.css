@@ -8,8 +8,8 @@
 }
 
 .wrapper {
-    position:relative;
-    width: 600px;
+    position: relative;
+    width: 700px;
     height: 500px;
     background: transparent;
     border: 2px solid rgba(255, 255, 255, .5);
@@ -22,12 +22,25 @@
     overflow: hidden;
     margin: 0 auto;
 	padding: 40px;
+    transition: .5s ease;
+}
+
+.homeWrapper {
+    height: 350px; /* Desired height for the Home component */
+    width: 700px; 
+    transition: .5s ease;
 }
 
 .submitWrapper {
     height: 600px; /* Desired height for the Submit component */
     width: 700px; 
-    transition: .18s ease;
+    transition: .5s ease;
+}
+
+.uploadedWrapper {
+    height: 500px; /* Desired height for the Uploaded component */
+    width: 700px; 
+    transition: .5s ease;
 }
 
 h1 {
@@ -106,9 +119,15 @@ body {
     color:rgb(199, 169, 121);
 }
 
+.tableContainer {
+    max-height: 100%; /* Adjust the height as needed */
+    overflow: auto;
+}
+
 .customTable {
     width: 100%;
     border-spacing: 0;
+    overflow: auto;
 }
 
 .customRow {

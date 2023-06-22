@@ -10,7 +10,7 @@ interface Props {
 
 export const Header: React.FC<Props> = ({ address, admin }) => {
 
-    const { userDataGlobal, user } = UserAuth();
+    const { userDataGlobalLogin , user } = UserAuth();
 	const location = useLocation();
 
 	// Function to check if the current route is active
@@ -32,16 +32,16 @@ export const Header: React.FC<Props> = ({ address, admin }) => {
 				</Link> 
 			)}
 			{admin && (
-				<Link to="/your-certificates" id="linkYourCertificates" className={isActive("/your-certificates")}>
+				<Link to="/uploaded-certificates" id="linkUploadedCertificates" className={isActive("/uploaded-certificates")}>
 				Uploaded Certificates
 				</Link>
 			)}
-			{!admin && (user || userDataGlobal) && (
+			{!admin && user && userDataGlobalLogin && (
 				<Link to="/login" id="linkLogin" className={isActive("/login")}>
 				Information
 				</Link>
 			)}
-			{!admin && !user && !userDataGlobal && (
+			{!admin && (!user || !userDataGlobalLogin) && (
 				<Link to="/login" id="linkLogin" className={isActive("/login")}>
 				Login
 				</Link>

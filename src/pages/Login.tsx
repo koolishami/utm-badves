@@ -5,24 +5,24 @@ import { Form, Button, InputGroup, Table } from "react-bootstrap";
 import styles from "../Pages.module.css"
 import { toast } from "react-toastify";
 import { UserAuth } from '../components/UserContext';
-import { db } from '../utils/firebase';
+import { auth, db } from '../utils/firebase';
+import { signOut } from 'firebase/auth';
 
 export const Login: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function}> = ({ senderAddress, contract, getContract, fetchBalance,  }) => {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [email, setEmail] = useState<string>('');
 
-    const [userData, setUserData] = useState<any>(null);
-    const [validated, setValidated] = useState(false);
-    const { setUserDataGlobal, signIn, logout } = UserAuth();
+    const { userDataGlobalLogin, setUserDataGlobalLogin, signIn, logout, user } = UserAuth();
 
-    const handleFetchEmail = async () => {
+    const handleLogin = async () => {
         try {
+            if (email !== ""){
+                toast.loading('Logging in..')
+            }
             const usersCollectionRef = collection(db, 'graduates');
-            console.log(usersCollectionRef)
             const querySnapshot = await getDocs(query(usersCollectionRef, where('username', '==', username)));
-            console.log(querySnapshot)
-            console.log(querySnapshot.docs[0].data())
+
             if (querySnapshot.empty) {
                 console.log('No user found with the given username');
                 setEmail('');
@@ -31,86 +31,62 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                 const userData = querySnapshot.docs[0].data();
                 const { email } = userData;
                 setEmail(email);
-                console.log(email);
-            }
-        } catch (error) {
-			toast.error("Email not found.");
-            console.log('Error fetching email:', error);
-            setEmail('');
-        }
-    };
 
-    const handleSignIn = async (event : React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.stopPropagation();
-        }
-        
-        setValidated(true);
-        if (form.checkValidity()) {
-            try {
-                handleFetchEmail();
-                console.log(email, password);
-                // User authentication using Context API (singIn from UserContext)
+                // User authentication using Context API (signIn from UserContext)
                 await signIn(email, password);
-    
+
                 // User authentication succeeded, fetch user data from Firestore
                 const db = getFirestore();
                 const usersCollectionRef = collection(db, 'graduates');
-                const querySnapshot  = await getDocs(usersCollectionRef);
+                const newQuerySnapshot = await getDocs(usersCollectionRef);
 
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach((doc) => {
+                if (!newQuerySnapshot.empty) {
+                    newQuerySnapshot.forEach((doc) => {
                         const docData = doc.data();
                         if (docData.email === email) {
-                            setUserData(docData);
-                            console.log(docData);
-                            setUserDataGlobal(docData);
+                            setUserDataGlobalLogin(docData);
                         }
                     });
                 } else {
-                console.log('User data not found');
+                    console.log('User data not found');
                 }
-            } catch (error) {
-                toast.error("Authentication failed.")
-                console.log('Authentication failed:', error);
             }
+        } catch (error) {
+            toast.dismiss()
+            toast.error("Authentication failed.")
+            console.log('Authentication failed:', error);
         }
+        toast.dismiss()
     };
+
+    useEffect(() => {
+        if (email && password) {
+            handleLogin();
+        } else {
+            signOut(auth);
+        }
+    }, [email, password]);
+
+    useEffect(() => {
+        console.log(user)
+        console.log(email, password)
+    }, [email])
 
     const handleLogout = async () => {
         try {
-          await logout();
-            setUserData(null); // Clear userData state
-            setUserDataGlobal(null); // Clear userDataGlobal in the context
+            setUserDataGlobalLogin(null); // Clear userDataGlobal in the context
+            logout();
         } catch (error) {
             console.log(error);
           toast.error("Something went wrong! Unable to logout.");
         }
     };
 
-    useEffect(() => {
-        // Check if userDataGlobal is already stored in local storage
-        const storedUserData = localStorage.getItem('userDataGlobal');
-        if (storedUserData) {
-          setUserData(JSON.parse(storedUserData));
-        }
-    }, []);
-
-    useEffect(() => {
-        // Update local storage when userDataGlobal changes
-        if (userData) {
-          localStorage.setItem('userDataGlobal', JSON.stringify(userData));
-        } else {
-          localStorage.removeItem('userDataGlobal');
-        }
-    }, [userData]);
-
     return (
         <div className={styles.formContainer}>
-            {!userData && (
-                <><h1 className="fw-bold">Login</h1><Form noValidate validated={validated} onSubmit={handleSignIn}>
+            {!userDataGlobalLogin && (
+                <><h1 className="fw-bold">Login</h1>
+                <Form>
                     <InputGroup className={styles.inputBox}>
                         <Form.Control
                             type="text"
@@ -137,45 +113,49 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                         bsPrefix="btnCustom"
                         className={styles.btnCustom}
                         type="submit"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleLogin();
+                        }}
                     >Sign In
                     </Button>
                 </Form></>
             )}
                 
-            {userData && (
+            {userDataGlobalLogin && (
                 <div>
-                    <h1>Welcome, {userData.username}!</h1>
+                    <h1>Welcome, {userDataGlobalLogin.username}!</h1>
 					<Table bordered responsive className={styles.customTable}>
                         <tbody>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Email</td>
-                                <td className={styles.customData}>{userData.email}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.email}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Name</td>
-                                <td className={styles.customData}>{userData.name}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.name}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>NRIC/Passport No.</td>
-                                <td className={styles.customData}>{userData.nric}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.nric}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Course</td>
-                                <td className={styles.customData}>{userData.course}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.course}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Graduation Year</td>
-                                <td className={styles.customData}>{userData.gradYear}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.gradYear}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>CGPA</td>
-                                <td className={styles.customData}>{userData.cgpa}</td>
+                                <td className={styles.customData}>{userDataGlobalLogin.cgpa}</td>
                             </tr>
                             <tr className={styles.customRow}>
                                 <td className={styles.customLabel}>Algorand Explorer Link</td>
                                 <td className={styles.customData}>
-                                    <a href={userData.transactionId} target="_blank" rel="noopener noreferrer">
-                                        {userData.transactionId}
+                                    <a href={userDataGlobalLogin.transactionId} target="_blank" rel="noopener noreferrer">
+                                        {userDataGlobalLogin.transactionId}
                                     </a>
                                 </td>
                             </tr>

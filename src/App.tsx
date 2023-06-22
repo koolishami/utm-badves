@@ -12,7 +12,7 @@ import { Notification } from "./components/Notifications"
 import { Home } from "./pages/Home"
 import { Submit } from "./pages/Submit"
 import { Verify } from "./pages/Verify"
-import { YourCertificates } from "./pages/YourCertificates"
+import { UploadedCertificates } from "./pages/UploadedCertificates"
 import { Login } from "./pages/Login"
 import { Contract, getContractData } from "./utils/registry";
 import { contractTemplate } from "./utils/constants"
@@ -23,7 +23,7 @@ import {
 	collection,
 	getDocs,
 } from "firebase/firestore";
-import { UserProvider } from './components/UserContext';
+import { UserAuth, UserProvider } from './components/UserContext';
 
 function App() {
 	const [address, setAddress] = useState("");
@@ -35,6 +35,9 @@ function App() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [isSubmitRoute, setIsSubmitRoute] = useState(false);
+	const [isHomeRoute, setIsHomeRoute] = useState(false);
+	const [isUploadedRoute, setIsUploadedRoute] = useState(false);
+    const { setUserDataGlobalVerify, setUserDataGlobalLogin } = UserAuth();
 
 	const fetchBalance = async (accountAddress: string) => {
 		indexerClient.lookupAccountByID(accountAddress).do()
@@ -62,12 +65,11 @@ function App() {
 	};
 
 	const disconnect = () => {
-		window.location.reload()
-		toast.loading(`Disconnecting`)
 		setAddress("");
 		setName("");
 		setBalance(0);
 		navigate("/");
+		window.location.reload()
 	};
 
 	const getContract = useCallback(async () => {
@@ -103,10 +105,14 @@ function App() {
 		return () => {
 			isTemplate = false;
 		};
-	}, [getContract, isAdminTrue]);
+	}, [getContract]);
 
 	useEffect(() => {
-		setIsSubmitRoute(location.pathname === "/submit-certificate");
+		setUserDataGlobalVerify(null);
+		setUserDataGlobalLogin(null);
+		setIsHomeRoute(location.pathname === "/")
+		setIsSubmitRoute(location.pathname === "/submit-certificate")
+		setIsUploadedRoute(location.pathname === "/uploaded-certificates")
 	}, [location.pathname]);	  
 
 	return (
@@ -140,12 +146,14 @@ function App() {
 							</Button>
 						</div>
 						)}
-						<div className={`${styles.wrapper} ${isSubmitRoute && styles.submitWrapper}`}>
+						<div className={`${styles.wrapper} ${isHomeRoute && styles.homeWrapper} ${isSubmitRoute && styles.submitWrapper} ${isUploadedRoute && styles.uploadedWrapper}`}>
 							<Routes>
 								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} admin={admin} />} path="/" />
 								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}  />} path="/submit-certificate" />
 								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
-								<Route element={<YourCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/your-certificates" />
+								{address && (
+									<Route element={<UploadedCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/uploaded-certificates" />
+								)}
 								<Route element={<Login senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}/>} path="/login" />
 							</Routes>   
 						</div>

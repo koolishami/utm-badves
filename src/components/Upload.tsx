@@ -7,7 +7,8 @@ import * as registry from "../utils/registry"
 import {
 	ref,
 	uploadBytes,
-	listAll
+	listAll,
+	getDownloadURL
 } from "firebase/storage";
 import { auth, storage, db } from "../utils/firebase";
 import { collection, doc, getDocs, setDoc } from "firebase/firestore";
@@ -35,7 +36,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 		cgpa: ""
 	});
 
-	const { logout, isVerified, setIsVerified, setUserDataGlobal, userDataGlobal } = UserAuth();
+	const { logout, isVerified, setIsVerified, setUserDataGlobalVerify, userDataGlobalVerify } = UserAuth();
 
 	const uploadFile = () => {
 		if (fileUpload == null) return;
@@ -106,14 +107,15 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 				// Set the form data in the document
 				await setDoc(graduateDocRef, {
-				name: formData.name,
-				username: formData.username,
-				email: formData.email,
-				nric: formData.nric,
-				course: formData.course,
-				gradYear: formData.gradYear,
-				cgpa: formData.cgpa,
-				transactionId: `https://testnet.algoexplorer.io/tx/${txId}`,
+					name: formData.name,
+					username: formData.username,
+					email: formData.email,
+					nric: formData.nric,
+					course: formData.course,
+					gradYear: formData.gradYear,
+					cgpa: formData.cgpa,
+					transactionId: `https://testnet.algoexplorer.io/tx/${txId}`,
+					fileHash: hash
 				});
 
 				uploadFile();
@@ -157,18 +159,22 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			toast.loading(`Checking registry for certificate ${hash.toString().slice(0, 10)}`);
 			setLoading(true);
 			
+			if(senderAddress===""){
+				toast.error(`Please connect your wallet before verifying`)
+				return
+			}
+		
 			await new Promise<void>((resolve, reject) => {
 				registry.checkCert(senderAddress, cert, contract)
 				.then(async () => {
 					// Verification successful
 					toast.dismiss();
 					toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
-					setIsVerified(true);
-					toast.success("Showing graduate's information..");
-					console.log("WOI MASUK LA SINI")
+					toast.loading("Showing graduate's information");
 					type SearchResult = {
 						fileName: string;
 						folderName: string;
+						fileHash: string;
 					};
 					const certificatesRef = ref(storage, "certificates");
 					const certificatesSnapshot = await listAll(certificatesRef);
@@ -183,45 +189,56 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 						setLoading(false);
 						return;
 					}
-				
+
 					for (const folder of matchingFolders) {
 						const folderFiles = await listAll(folder);
-						folderFiles.items.forEach((file) => {
-							const fileName = file.name.split("/").pop();
-							if (fileName) {
-								searchResults.add({ fileName, folderName: folder.name });
-							}
+						folderFiles.items.forEach(async (file) => {
+							const reader = new FileReader();
+							reader.onload = function () {
+								const fileContent = reader.result as string;
+								const storedFileHash = sha3_256(fileContent).toString();
+						
+								const fileName = file.name.split('/').pop();
+								if (fileName) {
+								searchResults.add({ fileName, folderName: folder.name, fileHash: storedFileHash });
+								}
+
+								Array.from(searchResults).forEach(async (result: SearchResult) => {
+									if (result.fileName === name || storedFileHash === hash) {
+										const folderNameFound = result.folderName;
+										try {
+											const usersCollectionRef = collection(db, 'graduates');
+											const querySnapshot  = await getDocs(usersCollectionRef);
+							
+											if (!querySnapshot.empty) {
+												querySnapshot.forEach((doc) => {
+												const docData = doc.data();
+												if (docData.username === folderNameFound) {
+													setUserDataGlobalVerify(docData);
+													setIsVerified(true);
+													toast.dismiss();
+												}
+												});
+											} else {
+											console.log('User data not found');
+											}
+										} catch (error) {
+											toast.error("Authentication failed.")
+										}
+									}
+								});
+							};
+							getDownloadURL(file).then((url) => {
+								const xhr = new XMLHttpRequest();
+								xhr.responseType = 'blob';
+								xhr.onload = () => {
+									reader.readAsBinaryString(xhr.response);
+								};
+								xhr.open('GET', url);
+								xhr.send();
+							});
 						});
 					}
-
-					console.log(matchingFolders);
-					console.log(searchResults);
-
-					Array.from(searchResults).forEach(async (result: SearchResult) => {
-						if (result.fileName === name) {
-							const folderNameFound = result.folderName;
-							setIsVerified(true);
-							try {
-								const usersCollectionRef = collection(db, 'graduates');
-								const querySnapshot  = await getDocs(usersCollectionRef);
-								console.log(usersCollectionRef)
-				
-								if (!querySnapshot.empty) {
-									querySnapshot.forEach((doc) => {
-									const docData = doc.data();
-									if (docData.username === folderNameFound) {
-										setUserDataGlobal(docData);
-										console.log(docData);
-									}
-									});
-								} else {
-								console.log('User data not found');
-								}
-							} catch (error) {
-								toast.error("Authentication failed.")
-							}
-						}
-					});
 					resolve();
 				}).catch(error => {
 					console.log(error);
@@ -263,7 +280,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 	const handleBack = async () => {
         try {
-			setUserDataGlobal(null);
+			setUserDataGlobalVerify(null);
 			setIsVerified(false);
         } catch (error) {
             console.log(error);
@@ -367,13 +384,13 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 						</Form.Group>
 					</>
 				)}
-				{(id === "certificateForUpload" || (id === "certificateToVerify" && !isVerified)) || userDataGlobal===null ? (
+				{(id === "certificateForUpload" || (id === "certificateToVerify" && !isVerified)) || userDataGlobalVerify===null ? (
 					<>
 						<Form.Group className="my-2">
 							<Form.Control
 								id={id}
 								type="file"
-								disabled={!contract.userOptedIn && id === "certificateForUpload"}
+								disabled={(!contract.userOptedIn && id === "certificateForUpload") || (senderAddress === "" && id === "certificateToVerify")}
 								onChange={(e: any) => {
 									handleOnChange(e.target.files[0]);
 									setFileUpload(e.target.files[0]);
@@ -396,42 +413,44 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				) : (
 					<>
             			<h4>Verified Graduate's Information</h4>
-						 <Table bordered responsive className={styles.customTable}>
-							<tbody>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>Email</td>
-									<td className={styles.customData}>{userDataGlobal.email}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>Name</td>
-									<td className={styles.customData}>{userDataGlobal.name}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>NRIC/Passport No.</td>
-									<td className={styles.customData}>{userDataGlobal.nric}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>Course</td>
-									<td className={styles.customData}>{userDataGlobal.course}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>Graduation Year</td>
-									<td className={styles.customData}>{userDataGlobal.gradYear}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>CGPA</td>
-									<td className={styles.customData}>{userDataGlobal.cgpa}</td>
-								</tr>
-								<tr className={styles.customRow}>
-									<td className={styles.customLabel}>Algorand Explorer Link</td>
-									<td className={styles.customData}>
-										<a href={userDataGlobal.transactionId} target="_blank" rel="noopener noreferrer">
-											{userDataGlobal.transactionId}
-										</a>
-									</td>
-								</tr>
-							</tbody>
-						</Table>
+						<div className={styles.tableContainer}>
+							<Table bordered responsive className={styles.customTable}>
+								<tbody>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>Email</td>
+										<td className={styles.customData}>{userDataGlobalVerify.email}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>Name</td>
+										<td className={styles.customData}>{userDataGlobalVerify.name}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>NRIC/Passport No.</td>
+										<td className={styles.customData}>{userDataGlobalVerify.nric}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>Course</td>
+										<td className={styles.customData}>{userDataGlobalVerify.course}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>Graduation Year</td>
+										<td className={styles.customData}>{userDataGlobalVerify.gradYear}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>CGPA</td>
+										<td className={styles.customData}>{userDataGlobalVerify.cgpa}</td>
+									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>Algorand Explorer Link</td>
+										<td className={styles.customData}>
+											<a href={userDataGlobalVerify.transactionId} target="_blank" rel="noopener noreferrer">
+												{userDataGlobalVerify.transactionId}
+											</a>
+										</td>
+									</tr>
+								</tbody>
+							</Table>
+						</div>
 						<Button 
 							bsPrefix="btnCustom"
 							className={styles.btnCustom}

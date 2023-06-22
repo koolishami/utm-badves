@@ -9,7 +9,7 @@ export const Submit: React.FC<{ senderAddress: string, contract: Contract, getCo
 		<div className={styles.formContainer}>
 			<h1 className="fw-bold">Submit a Certificate</h1>
 				<ul>
-					<li><b className="fw-bold">Opt In</b> before uploading a certificate.</li>
+					<li>Please <b className="fw-bold">Opt In</b> before uploading a certificate.</li>
 					<li>User will be <b className="fw-bold">automatically created</b> with username, email, and NRIC/Passport No. as credentials.</li>
 				</ul>
 			<div>

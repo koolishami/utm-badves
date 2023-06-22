@@ -15,7 +15,7 @@ import styles from "../Pages.module.css"
 import { collection, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
 import { EmailAuthProvider, reauthenticateWithCredential, signOut } from "firebase/auth";
 
-export const YourCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
+export const UploadedCertificates: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function }> = ({ senderAddress, contract, getContract, fetchBalance }) => {
     const [loading, setLoading] = useState(false);
     const [activeCert, setActiveCert] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -102,9 +102,7 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 console.log(error);
                 toast.error('Error deleting user');
             }
-            console.log(email, password);
         };
-        console.log(email, password);
         if (user) {
             signOut(auth);
         }
@@ -128,9 +126,6 @@ export const YourCertificates: React.FC<{ senderAddress: string, contract: Contr
                 .then(() => {
                     setIsFileDeleted(true)
                     toast.success(`${certName} deleted successfully`);
-                    setTimeout(() => {
-                    update();
-                    }, 3000);
                 })
                 .catch((error) => {
                     console.log({ error });
