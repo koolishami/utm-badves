@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { toast } from "react-toastify";
-import { Form, Button, Spinner, Table } from "react-bootstrap"
+import { Form, Button, Spinner, Table, Image } from "react-bootstrap"
 import { sha3_256 } from "js-sha3"
 import styles from "../Pages.module.css"
 import * as registry from "../utils/registry"
@@ -14,6 +14,7 @@ import { auth, storage, db } from "../utils/firebase";
 import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { UserAuth } from '../components/UserContext';
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import QRCode from "qrcode";
 
 export const Upload: React.FC<{ id: string, senderAddress: string, contract: registry.Contract, getContract: Function, fetchBalance: Function }> = ({ id, senderAddress, contract, getContract, fetchBalance }) => {
 
@@ -36,7 +37,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 		cgpa: ""
 	});
 
-	const { logout, isVerified, setIsVerified, setUserDataGlobalVerify, userDataGlobalVerify } = UserAuth();
+	const { logout, isVerified, setIsVerified, userDataGlobalVerify, setUserDataGlobalVerify, qrCodeUrlVerified, setqrCodeUrlVerified } = UserAuth();
 
 	const uploadFile = () => {
 		if (fileUpload == null) return;
@@ -79,6 +80,39 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			});
 	};
 
+
+	const generateQRCode = (qrcodeURL: string) => {
+		QRCode.toDataURL(
+			qrcodeURL,
+			async (err, qrcodeData) => {
+				if (err) {
+					console.error(err);
+					return;
+				}
+		
+				try {
+					// Convert the base64 data URL to a Blob
+					const response = await fetch(qrcodeData);
+					const blob = await response.blob();
+		
+					// Specify the path and filename for the uploaded QR code image
+					const qrCodePath = `certificates/${formData.username}/qrCode-${formData.username}.png`;; // Adjust the filename and format as needed
+			
+					// Create a reference to the storage location
+					const qrCodeRef = ref(storage, qrCodePath);
+			
+					// Upload the QR code image to Firebase Storage
+					await uploadBytes(qrCodeRef, blob).then(() => {
+						console.log('QR code image uploaded successfully!');
+					})
+				} catch (error) {
+					console.error('Error uploading QR code image:', error);
+				}
+			}
+		);
+	};
+	  
+
 	const addCertficate = async (cert: registry.Cert) => {
 		setLoading(true);
 		toast.loading(`Adding Certificate ${hash.toString().slice(0, 10)} to registry`);
@@ -118,6 +152,9 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					fileHash: hash
 				});
 
+				const qrCodeData = `https://testnet.algoexplorer.io/tx/${txId}`;
+				
+				generateQRCode(qrCodeData);
 				uploadFile();
 
 				toast.success("Form data stored successfully!");
@@ -155,111 +192,118 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	};
 
 	const verifyCertificate = async (cert: registry.Cert) => {
-		try {
-			toast.loading(`Checking registry for certificate ${hash.toString().slice(0, 10)}`);
-			setLoading(true);
-			
-			if(senderAddress===""){
-				toast.error(`Please connect your wallet before verifying`)
-				return
-			}
+		toast.loading(`Checking registry for certificate ${hash.toString().slice(0, 10)}`);
+		setLoading(true);
 		
-			await new Promise<void>((resolve, reject) => {
-				registry.checkCert(senderAddress, cert, contract)
-				.then(async () => {
-					// Verification successful
-					toast.dismiss();
-					toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
-					toast.loading("Showing graduate's information");
-					type SearchResult = {
-						fileName: string;
-						folderName: string;
-						fileHash: string;
-					};
-					const certificatesRef = ref(storage, "certificates");
-					const certificatesSnapshot = await listAll(certificatesRef);
-					const searchResults = new Set<SearchResult>(); // Define the type for searchResults set
-				
-					const matchingFolders = certificatesSnapshot.prefixes.filter((folder) =>
-						folder.name.toLowerCase().includes(searchQuery.toLowerCase())
-					);
-
-					if (matchingFolders.length === 0) {
-						toast.error("User not found!");
-						setLoading(false);
-						return;
-					}
-
-					for (const folder of matchingFolders) {
-						const folderFiles = await listAll(folder);
-						folderFiles.items.forEach(async (file) => {
-							const reader = new FileReader();
-							reader.onload = function () {
-								const fileContent = reader.result as string;
-								const storedFileHash = sha3_256(fileContent).toString();
-						
-								const fileName = file.name.split('/').pop();
-								if (fileName) {
-								searchResults.add({ fileName, folderName: folder.name, fileHash: storedFileHash });
-								}
-
-								Array.from(searchResults).forEach(async (result: SearchResult) => {
-									if (result.fileName === name || storedFileHash === hash) {
-										const folderNameFound = result.folderName;
-										try {
-											const usersCollectionRef = collection(db, 'graduates');
-											const querySnapshot  = await getDocs(usersCollectionRef);
-							
-											if (!querySnapshot.empty) {
-												querySnapshot.forEach((doc) => {
-												const docData = doc.data();
-												if (docData.username === folderNameFound) {
-													setUserDataGlobalVerify(docData);
-													setIsVerified(true);
-													toast.dismiss();
-												}
-												});
-											} else {
-											console.log('User data not found');
-											}
-										} catch (error) {
-											toast.error("Authentication failed.")
-										}
-									}
-								});
-							};
-							getDownloadURL(file).then((url) => {
-								const xhr = new XMLHttpRequest();
-								xhr.responseType = 'blob';
-								xhr.onload = () => {
-									reader.readAsBinaryString(xhr.response);
-								};
-								xhr.open('GET', url);
-								xhr.send();
-							});
-						});
-					}
-					resolve();
-				}).catch(error => {
-					console.log(error);
-					toast.error("Failed to perform search.");
-					reject();
-				}).finally(() => {
-					setLoading(false);
-				})
-			})
-					
-		} catch (error: any) {
-			console.error('Certificate verification error:', error);
-			toast.dismiss();
-			if (error.message.slice(-39) === "transaction rejected by ApprovalProgram") {
-				toast.error(`Certificate ${hash.toString().slice(0, 10)} is not valid.`);
-			} else {
-				toast.error(`${error.message}`);
-			}
-			setIsVerified(false); // Verification failed
-			setLoading(false);
+		if(senderAddress===""){
+			toast.error(`Please connect your wallet before verifying`)
+			return
 		}
+	
+		await new Promise<void>((resolve, reject) => {
+			registry.checkCert(senderAddress, cert, contract)
+			.then(async () => {
+				// Verification successful
+				toast.dismiss();
+				toast.success(`Certificate ${hash.toString().slice(0, 10)} is valid.`);
+				toast.loading("Showing graduate's information");
+				type SearchResult = {
+					fileName: string;
+					folderName: string;
+					fileHash: string;
+				};
+				const certificatesRef = ref(storage, "certificates");
+				const certificatesSnapshot = await listAll(certificatesRef);
+				
+				const searchResults = new Set<SearchResult>(); // Define the type for searchResults set
+			
+				const matchingFolders = certificatesSnapshot.prefixes.filter((folder) =>
+					folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+				);
+
+				if (matchingFolders.length === 0) {
+					toast.error("User not found!");
+					setLoading(false);
+					return;
+				}
+
+				for (const folder of matchingFolders) {
+					const folderFiles = await listAll(folder);
+					folderFiles.items.forEach(async (file) => {
+						const reader = new FileReader();
+						reader.onload = function () {
+							const fileContent = reader.result as string;
+							const storedFileHash = sha3_256(fileContent).toString();
+					
+							const fileName = file.name.split('/').pop();
+							if (fileName) {
+								searchResults.add({ fileName, folderName: folder.name, fileHash: storedFileHash });
+							}
+
+							Array.from(searchResults).forEach(async (result: SearchResult) => {
+								if (result.fileName === name || storedFileHash === hash) {
+									const folderNameFound = result.folderName;
+									try {
+										const usersCollectionRef = collection(db, 'graduates');
+										const querySnapshot  = await getDocs(usersCollectionRef);
+						
+										if (!querySnapshot.empty) {
+											querySnapshot.forEach((doc) => {
+											const docData = doc.data();
+											if (docData.username === folderNameFound) {
+												setUserDataGlobalVerify(docData);
+												setIsVerified(true);
+												toast.dismiss();
+
+												getDownloadURL(ref(storage, `certificates/${folderNameFound}/qrCode-${folderNameFound}.png`))
+													.then((url) => {
+															// `url` is the download URL for '${folderNameFound}/qrCode.png'
+															setqrCodeUrlVerified(url)
+														})
+														.catch((error) => {
+															// Handle any errors
+															toast.error("An error occured. Check console.")
+															console.log(error.code)
+														});
+											}
+											});
+										} else {
+										console.log('User data not found');
+										}
+									} catch (error) {
+										toast.error("Authentication failed.")
+									}
+								}
+							});
+						};
+						getDownloadURL(file).then((url) => {
+							const xhr = new XMLHttpRequest();
+							xhr.responseType = 'blob';
+							xhr.onload = () => {
+								reader.readAsBinaryString(xhr.response);
+							};
+							xhr.open('GET', url);
+							xhr.send();
+						});
+					});
+				}
+				resolve();
+			}).catch(error => {
+				console.error('Certificate verification error:', error);
+				toast.dismiss();
+				if (error.message.slice(-39) === "transaction rejected by ApprovalProgram") {
+					toast.error(`Certificate ${hash.toString().slice(0, 10)} is not valid.`);
+				} else {
+					toast.error(`${error.message}`);
+				}
+				setIsVerified(false); // Verification failed
+				setLoading(false);
+				console.log(error);
+				reject();
+			}).finally(() => {
+				setLoading(false);
+			})
+		})
 	};
 
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -290,7 +334,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 	return (
 		<>
-			<Form onSubmit={onSubmit} className="my-1">
+			<Form onSubmit={onSubmit}>
 				{id === "certificateForUpload" && (
 					<>
 						<Form.Group>
@@ -386,7 +430,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 				)}
 				{(id === "certificateForUpload" || (id === "certificateToVerify" && !isVerified)) || userDataGlobalVerify===null ? (
 					<>
-						<Form.Group className="my-2">
+						<Form.Group>
 							<Form.Control
 								id={id}
 								type="file"
@@ -412,9 +456,9 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					</>
 				) : (
 					<>
-            			<h4>Verified Graduate's Information</h4>
-						<div className={styles.tableContainer}>
-							<Table bordered responsive className={styles.customTable}>
+            			<h1>Verified Graduate's Information</h1>
+						<div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+							<Table bordered responsive>
 								<tbody>
 									<tr className={styles.customRow}>
 										<td className={styles.customLabel}>Email</td>
@@ -448,6 +492,12 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 											</a>
 										</td>
 									</tr>
+									<tr className={styles.customRow}>
+										<td className={styles.customLabel}>QR Code (Algorand Explorer Link)</td>
+										<td className={styles.customData}>
+											<Image src={qrCodeUrlVerified} fluid />
+										</td>
+									</tr>
 								</tbody>
 							</Table>
 						</div>
@@ -462,7 +512,6 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 					</>
 				)}
 			</Form>
-			{}
 		</>
 	)
 }

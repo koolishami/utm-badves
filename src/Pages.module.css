@@ -19,9 +19,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
     margin: 0 auto;
-	padding: 40px;
+    overflow-y: hidden;
+	padding: 30px;
     transition: .5s ease;
 }
 
@@ -48,12 +48,7 @@ h1 {
     font-weight: bold;
     color:#f9d394;
     text-align: center;
-}
-
-h4 {
-    font-weight: bold;
-    color: #f9d394;
-    text-align: center;
+    margin-top: 0;
 }
 
 p {
@@ -78,6 +73,7 @@ body {
     color: rgb(255, 230, 191);
     font-weight: 500;
     box-shadow: 5px 5px 3px rgba(46, 46, 46, 0.62);
+    margin-top: 10px;
 }
 
 .btnCustom:hover{
@@ -87,11 +83,6 @@ body {
 
 .btnCustom:active{
     background-color: #4E041D;
-}
-
-.formContainer {
-    width: 100%;
-    overflow: auto;
 }
 
 .inputBox { 
@@ -119,15 +110,13 @@ body {
     color:rgb(199, 169, 121);
 }
 
-.tableContainer {
-    max-height: 100%; /* Adjust the height as needed */
-    overflow: auto;
-}
-
-.customTable {
+.formContainer {
     width: 100%;
-    border-spacing: 0;
+    display: flex;
+    flex-direction: column;
     overflow: auto;
+    padding: 10px;
+    justify-content: center;
 }
 
 .customRow {

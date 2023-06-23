@@ -4,10 +4,10 @@ import { Contract } from "../utils/registry";
 
 const config = {
   algodToken: "",
-  algodServer: "https://node.testnet.algoexplorerapi.io",
+  algodServer: "	https://testnet-api.algonode.cloud",
   algodPort: "",
   indexerToken: "",
-  indexerServer: "https://algoindexer.testnet.algoexplorerapi.io",
+  indexerServer: "https://testnet-idx.algonode.cloud",
   indexerPort: "",
 };
 

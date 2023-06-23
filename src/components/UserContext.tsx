@@ -20,6 +20,10 @@ export interface UserContextType {
   user: any;
   isVerified: boolean;
   setIsVerified: (value: boolean) => void;
+  qrCodeUrlVerified: string
+  setqrCodeUrlVerified: (value: string) => void;
+  qrCodeUrlLogin: string
+  setqrCodeUrlLogin: (value: string) => void;
 }
 
 export const UserContext = createContext<UserContextType>(null!);
@@ -30,6 +34,8 @@ export const UserProvider: React.FC = ({ children }) => {
   const [authenticated, setAuthenticated] = useState({});
   const [user, setUser] = useState<User | null>(null);
   const [isVerified, setIsVerified] = useState(false);
+	const [qrCodeUrlVerified, setqrCodeUrlVerified] = useState('')
+	const [qrCodeUrlLogin, setqrCodeUrlLogin] = useState('')
 
   const signIn = (email: string, password: string) =>  {
     return signInWithEmailAndPassword(auth, email, password)
@@ -63,6 +69,10 @@ export const UserProvider: React.FC = ({ children }) => {
     user,
     isVerified,
     setIsVerified,
+    qrCodeUrlVerified,
+    setqrCodeUrlVerified,
+    qrCodeUrlLogin,
+    setqrCodeUrlLogin
   };
 
   return (

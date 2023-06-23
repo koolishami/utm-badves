@@ -112,7 +112,7 @@ export const UploadedCertificates: React.FC<{ senderAddress: string, contract: C
     }, [isFileDeleted]);
 
     const deleteCertificate = async (folderName: string, fileName: string, cert: any) => {
-        toast.loading(`Deleting ${fileName} and user ${folderName} from registry`);
+        toast.loading(`Deleting user ${folderName} from registry`);
         let certName = getName(cert);
         setActiveCert(certName);
         setLoading(true);
@@ -125,12 +125,19 @@ export const UploadedCertificates: React.FC<{ senderAddress: string, contract: C
                 deleteObject(fileRef)
                 .then(() => {
                     setIsFileDeleted(true)
-                    toast.success(`${certName} deleted successfully`);
                 })
                 .catch((error) => {
                     console.log({ error });
                     toast.error(`Failed to delete ${certName}`);
                 });
+
+                const qrCodeRef = ref(storage, `certificates/${folderName}/qrCode-${folderName}.png`);
+                deleteObject(qrCodeRef)
+                .then(() => {
+                    console.log("QR Code deleted successfully")
+                }).catch((error) => {
+                    console.log({error})
+                })
 
                 deleteDoc(doc(db, "graduates", folderName))
                 .then(() => {
@@ -237,13 +244,12 @@ export const UploadedCertificates: React.FC<{ senderAddress: string, contract: C
     };
 
     return (
-        <div className="my-5">
+        <div className={styles.formContainer}>
             <h1>Uploaded Certificates</h1>
             <p>Search the certificates you have uploaded to the contract by name.</p>
         
             <div className="mb-2">
                 <Form.Control
-                    className="mb-2"
                     type="text"
                     placeholder="Search"
                     value={searchQuery}

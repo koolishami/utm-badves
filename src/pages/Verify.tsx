@@ -8,7 +8,7 @@ export const Verify: React.FC<{ senderAddress: string, contract: Contract, getCo
 	const {isVerified} = UserAuth();
 
 	return (
-		<div className={styles.formContainer} >
+		<div className={styles.formContainer}>
 			{!isVerified && (
 				<>
 					<h1>Verify a Certificate</h1>
