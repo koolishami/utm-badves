@@ -119,25 +119,20 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 
 		try {
 			const txId = await registry.addCert(senderAddress, cert, contract);
-			console.log(txId);
 			toast.dismiss();
 			toast.success(`Certificate ${hash.toString().slice(0, 10)} added successfully.`);
 			setAddCertSuccess(true);
-			console.log(addCertSuccess);
 			setTimeout(() => {
 			update();
 			}, 2000);
 
 			// Store form data in Firestore
 			try {
-				console.log(formData);
 				// Create a reference to the "graduates" collection
 				const graduatesCollection = collection(db, "graduates");
-				console.log(graduatesCollection);
 
 				// Create a document reference using the username as the document ID
 				const graduateDocRef = doc(graduatesCollection, formData.username);
-				console.log(graduateDocRef);
 
 				// Set the form data in the document
 				await setDoc(graduateDocRef, {

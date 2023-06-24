@@ -96,7 +96,6 @@ export const UploadedCertificates: React.FC<{ senderAddress: string, contract: C
                     console.log('User deleted.')
                 } else {
                     toast.error('User not found');
-                    console.log('Ko salah lagi');
                 }
             } catch (error) {
                 console.log(error);
@@ -212,7 +211,6 @@ export const UploadedCertificates: React.FC<{ senderAddress: string, contract: C
                 
                         if (existingResult) {
                             existingResult.searchResults.push(certName);
-                            console.log(existingResult);
                         } else {
                             const resultObj = {
                                 searchResults: [certName],
