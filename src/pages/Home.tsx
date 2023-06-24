@@ -55,9 +55,9 @@ export const Home: React.FC<{ senderAddress: string, contract: Contract, getCont
 								</a>
 							</li>
 							<li>
-								Number of <b className="fw-bold">Documents</b> in registry:{" "}
+								Number of <b className="fw-bold">Certificates</b> in registry:{" "}
 								<b className="fw-bold">{contract.totalCertificate}</b>{" "}
-								Documents
+								Certificates
 							</li>
 						</ul>
 
