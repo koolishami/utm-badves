@@ -303,6 +303,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 			}).finally(() => {
 				setLoading(false);
 			})
+		}).catch(error => {
+			console.error('Certificate verification error:', error);
 		})
 	};
 
