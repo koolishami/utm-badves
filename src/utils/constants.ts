@@ -43,12 +43,12 @@ export const numGlobalBytes = 0;
 // Global variables stored as Bytes = 0
 
 // App ID
-export const appId = 222338193;
+export const appId = 249055119;
 
 export const contractTemplate: Contract = {
   appId: 0,
-  appAddress: "URRVMU5OQOPQKJFWHDRDT3Q7GRJLYJ5MJ6OGUHDD5U573M4YXQAANDZ3KU",
-  creatorAddress: "0",
+  appAddress: "TGNFBJBNRE6U25W2AEK4A54VM6NH46IETKZOXXMWXA66DIXNILSOIMACGQ",
+  creatorAddress: "OQPYYI7ZZRBP5IGJECIN53EZEP2WGTFCUAGMT5FDCT2L2DAJMFZAL6MZYA",
   userOptedIn: false,
   totalCertificate: 0,
   userCertificates: [],

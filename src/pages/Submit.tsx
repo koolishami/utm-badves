@@ -13,7 +13,7 @@ export const Submit: React.FC<{ senderAddress: string, contract: Contract, getCo
 					<li>User will be <b className="fw-bold">automatically created</b> with username, email, and NRIC/Passport No. as credentials.</li>
 				</ul>
 			<div>
-				<Upload id="certificateForUpload" senderAddress={senderAddress} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />
+				<Upload id="certificateForUpload" senderAddress={senderAddress} contract={contract} getContract={getContract} fetchBalance={fetchBalance}/>
 			</div>
 		</div>
 	)

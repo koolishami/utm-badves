@@ -332,7 +332,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 	return (
 		<>
 			<Form onSubmit={onSubmit}>
-				{id === "certificateForUpload" && (
+				{id === "certificateForUpload" && contract.userOptedIn &&  (
 					<>
 						<Form.Group>
 							<Form.Control 

@@ -149,10 +149,12 @@ function App() {
 						<div className={`${styles.wrapper} ${isHomeRoute && styles.homeWrapper} ${isSubmitRoute && styles.submitWrapper} ${isUploadedRoute && styles.uploadedWrapper}`}>
 							<Routes>
 								<Route element={<Home senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} admin={admin} />} path="/" />
-								<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}  />} path="/submit-certificate" />
 								<Route element={<Verify senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/verify-certificate" />
-								{address && (
+								{address && admin && (
+									<>
+									<Route element={<Submit senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/submit-certificate" />
 									<Route element={<UploadedCertificates senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance} />} path="/uploaded-certificates" />
+									</>
 								)}
 								<Route element={<Login senderAddress={address} contract={contract} getContract={getContract} fetchBalance={fetchBalance}/>} path="/login" />
 							</Routes>   

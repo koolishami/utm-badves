@@ -2,17 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Contract } from "../utils/registry";
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { Form, Button, InputGroup, Table, Image } from "react-bootstrap";
+import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import styles from "../Pages.module.css"
 import { toast } from "react-toastify";
 import { UserAuth } from '../components/UserContext';
 import { auth, db, storage } from '../utils/firebase';
 import { signOut } from 'firebase/auth';
 import { getDownloadURL, ref } from 'firebase/storage';
+import { Link } from 'react-router-dom';
 
 export const Login: React.FC<{ senderAddress: string, contract: Contract, getContract: Function, fetchBalance: Function}> = ({ senderAddress, contract, getContract, fetchBalance,  }) => {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [email, setEmail] = useState<string>('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const { userDataGlobalLogin, setUserDataGlobalLogin, signIn, logout, qrCodeUrlLogin, setqrCodeUrlLogin } = UserAuth();
 
@@ -76,7 +79,11 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
         } else {
             signOut(auth);
         }
-    }, [email, password]);
+    }, [email]);
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
 
     const handleLogout = async () => {
         try {
@@ -106,13 +113,23 @@ export const Login: React.FC<{ senderAddress: string, contract: Contract, getCon
                             Please provide a valid username.
                         </Form.Control.Feedback>
                     </InputGroup>
+                    
                     <InputGroup className={styles.inputBox}>
                         <Form.Control
-                            placeholder='Password'
-                            type="password"
+                            placeholder="Password"
+                            type={showPassword ? "text" : "password"} // Use 'text' if showPassword is true, otherwise 'password'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required />
+                            required
+                        />
+                        <InputGroup.Text
+                            className={styles.eyeBtn}
+                            onClick={togglePasswordVisibility}
+                            style={{ cursor: 'pointer' }}
+                            >
+                            {/* Render different eye icons based on the showPassword state */}
+                            {showPassword ? <BsEyeSlash /> : <BsEye />}
+                        </InputGroup.Text>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid password.
                         </Form.Control.Feedback>
