@@ -377,7 +377,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, nric: e.target.value })
 								}
 								required
-								pattern="^[0-9]+$" // Add ID validation pattern
+								pattern="^[A-Z0-9]+$" // Add ID validation pattern
 							/>
 							<Form.Select
 								className="mb-2"
