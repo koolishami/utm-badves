@@ -344,6 +344,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, name: e.target.value })
 								}
 								required
+								pattern="^[a-zA-Z]+$" // Add name validation pattern
 							/>
 							<Form.Control 
 								className="mb-2"
@@ -354,6 +355,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, username: e.target.value })
 								}
 								required
+								pattern="^[a-z]+$" // Add username validation pattern
 							/>
 							<Form.Control
 								className="mb-2"
@@ -375,6 +377,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, nric: e.target.value })
 								}
 								required
+								pattern="^[0-9]+$"
 							/>
 							<Form.Select
 								className="mb-2"
@@ -409,8 +412,8 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									const numericValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
     								setFormData({ ...formData, gradYear: numericValue });
 								}}
-								
 								required
+								pattern="^[0-9]{4}$"
 							/>
 							<Form.Control
 								className="mb-2"
@@ -421,6 +424,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, cgpa: e.target.value })
 								}
 								required
+								pattern="^(?:[0-3](?:\.\d{1,2})?|4(?:\.00?)?)$"
 							/>
 						</Form.Group>
 					</>
