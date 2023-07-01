@@ -377,7 +377,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, nric: e.target.value })
 								}
 								required
-								pattern="^[0-9]+$"
+								pattern="^[0-9]+$" // Add ID validation pattern
 							/>
 							<Form.Select
 								className="mb-2"
@@ -413,7 +413,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
     								setFormData({ ...formData, gradYear: numericValue });
 								}}
 								required
-								pattern="^[0-9]{4}$"
+								pattern="^[0-9]{4}$" // Add Graduation Year pattern
 							/>
 							<Form.Control
 								className="mb-2"
@@ -424,7 +424,7 @@ export const Upload: React.FC<{ id: string, senderAddress: string, contract: reg
 									setFormData({ ...formData, cgpa: e.target.value })
 								}
 								required
-								pattern="^(?:[0-3](?:\.\d{1,2})?|4(?:\.00?)?)$"
+								pattern="^(?:[0-3](?:\.\d{1,2})?|4(?:\.00?)?)$" // Add CGPA pattern
 							/>
 						</Form.Group>
 					</>
